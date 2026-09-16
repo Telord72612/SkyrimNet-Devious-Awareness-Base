@@ -111,5 +111,7 @@ Built on **SkyrimNet** by Sever, **Devious Devices**, **Devious Devices NG**, **
 **Diary of Mine**. `0410_equipment.prompt` is a keyword-filtered fork of SeverActions' version of that
 file, kept so devices are not leaked into an onlooker's equipment list; its origin is noted in the file.
 
+Thanks to Winds for providing the base information for pain state and scale.
+
 No device data is shipped and no plugin is patched — everything this mod says about a device is composed
 at runtime from the records in **your** load order.
