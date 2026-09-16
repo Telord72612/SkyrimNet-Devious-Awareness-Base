@@ -112,7 +112,7 @@ The Papyrus scripts compile against Devious Devices' and SkyrimNet's own sources
 The licence covers this repository's own code, prompts and settings. It does not cover the mods it is
 built against: the Papyrus needs Devious Devices' and SkyrimNet's own script sources to compile, and
 `0410_equipment.prompt` is a fork of SeverActions' file and follows that mod's permissions. See the
-note at the end of [`LICENSE`](LICENSE).
+dependency note in [`NOTICE.md`](NOTICE.md).
 
 ## Credits
 
