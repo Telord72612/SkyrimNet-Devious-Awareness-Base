@@ -105,6 +105,15 @@ the author's.
 The Papyrus scripts compile against Devious Devices' and SkyrimNet's own sources; you need those mods'
 `Scripts/Source` on the import path. Compile-time stubs are deliberately not redistributed here.
 
+## Licence
+
+[MIT](LICENSE) — use it, change it, build on it, ship it. That is the point of a Base.
+
+The licence covers this repository's own code, prompts and settings. It does not cover the mods it is
+built against: the Papyrus needs Devious Devices' and SkyrimNet's own script sources to compile, and
+`0410_equipment.prompt` is a fork of SeverActions' file and follows that mod's permissions. See the
+note at the end of [`LICENSE`](LICENSE).
+
 ## Credits
 
 Built on **SkyrimNet** by Sever, **Devious Devices**, **Devious Devices NG**, **ZaZ Animation Pack** and
