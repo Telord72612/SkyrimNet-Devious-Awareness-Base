@@ -42,6 +42,16 @@ talking; a **C++ interface** for the layer gate; and a **live state file** the p
 It replaces no Devious Devices behaviour — the vibrations, shocks, moans and stumbles are DD's own, called
 when this model says they belong.
 
+## Companion: DD Visualizer
+
+[**DD Visualizer**](../../releases/tag/dd-visualizer-v1.0) is a single self-contained page — download it,
+open it in a browser, no install and no internet. It shows all **1,553 devices** this mod knows and
+exactly what it will say about each one: the wearer's line and the onlooker's, the layer and region, the
+strain tier and how far it climbs, and the full event model with every line it can produce.
+
+It is generated from the same census and the same model the mod runs on, so it is a way to read the
+behaviour without reading the code. Not a mod — nothing goes into your load order.
+
 ## Requirements
 
 **Required:** SKSE · Address Library · SkyrimNet · Devious Devices (Assets + Integration + Expansion) ·
