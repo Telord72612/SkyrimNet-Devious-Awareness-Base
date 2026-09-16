@@ -1,0 +1,21 @@
+FormKey: 000800:DD SN Database.esp
+EditorID: VRTEDD_Database
+VirtualMachineAdapter:
+  Scripts:
+  - Name: VRTEDD_Controller
+  FileName: ''
+  Aliases:
+  - Property:
+      Name: ''
+      Object: 000800:DD SN Database.esp
+      Alias: 0
+    Scripts:
+    - Name: VRTEDD_PlayerAlias
+Flags:
+- StartGameEnabled
+NextAliasID: 1
+Aliases:
+- Name: Player
+  Flags: []
+  ForcedReference: 000014:Skyrim.esm
+  VoiceTypes: Null

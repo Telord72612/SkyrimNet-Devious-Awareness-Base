@@ -1,0 +1,148 @@
+{% if render_mode == "full" or render_mode == "thoughts" or render_mode == "transform" or render_mode == "equipment" or render_mode == "action" %}
+{# ═══════════════════════════════════════════════════════════════════════════
+   ⛔ THE GUARD ON LINE 1 MUST STAY ON LINE 1. SkyrimNet validates every
+   character_bio submodule by requiring the first FIVE lines to contain both the
+   word render_mode and an if-opener. This banner used to sit above the guard, so
+   the file failed that check on every load and SkyrimNet posted a shame banner
+   ("Found render_mode: no"). The guard was hoisted above the banner 2026-08-31.
+   The prompt still RENDERED while failing - it is a lint/nag, not a rejection -
+   but never reintroduce it: 0950 had the identical bug and the same fix.
+
+   VRTE DD/ZaZ AddOn OVERRIDE of 0410_equipment.prompt.        (2026-08-30)
+
+   ★ BETA 25 (2026-09-11). This file now ships inside the plugin
+   `external/telord.dd-sn-database/`, because SkyrimNet 0.25.0 stopped reading
+   loose `prompts/`. The path INSIDE the plugin is unchanged and resolves
+   exactly as before - a file at a shipped file's path still replaces it.
+   ⚠ PRIORITY IS NO LONGER MO2 ORDER. SeverActions' copy and ours are two
+   LAYERS now, ordered on the dashboard's Plugins page, and a player's own
+   overlay edit beats both. Keep this plugin ABOVE SeverActions there.
+
+   ⛔ THIS FILE IS A FORK, REBASED ON BETA 25 RC7's BASE COPY (2026-09-11).
+   Merge base = SeverActions' copy, NOT stock SkyrimNet's (they override it too).
+   Their additions are preserved verbatim - the render_mode=="action" branch, the
+   originalName display, and the ground-truth paragraph (reworded, see below).
+   ★ TAKEN FROM RC7's BASE 0410 IN THIS REBASE: the tempered-quality tag.
+   `get_tempered_items(uuid)` returns rows carrying formID + quality, and each
+   item line gains a ` [quality]` suffix. It arrived upstream between 0.23.1 and
+   Beta 25; our fork predates it and silently dropped it. Both branches have it.
+   ⚠ IF SEVERACTIONS OR SKYRIMNET REVISE THEIRS, RE-MERGE. There is no
+   automatic detection; diff both against this file.
+
+   ★ WHY IT EXISTS. get_worn_equipment dumps EVERY worn item to whoever the NPC
+   is talking to, clothing entirely ignored - so a plug under full plate was
+   being described to her conversation partner. The user: "A plug equipped on a
+   NPC need to stay hidden from another one, as the surrounding NPC can't see
+   the plug."
+
+   ⛔ WHY NOT ITEM CUSTOMIZATION. The obvious fix was 1,565 `enabled: false`
+   files. It FROZE THE GAME at launch, every time: SkyrimNet's log queue is
+   8,192 slots with a BLOCKING overflow policy and one worker, the item loader
+   starts at message ~6,946, and at logLevel debug each file emits one line -
+   so the queue fills around file ~1,247 and the main thread parks forever
+   holding the config lock. Measured across four frozen launches (0-byte logs)
+   and five healthy ones. This file needs none of that.
+
+   ★ THE FILTER BELOW WAS VALIDATED AGAINST THE RUNNING GAME, not assumed:
+     - item.keywords exists and is a list of {editorID}  (SkyrimNet's own test
+       prompt uses it; confirmed live - 18 keywords on Carmella's robes)
+     - `set` inside a for-loop PERSISTS after the loop  (measured)
+     - append() and `in` membership work  (measured; SeverActions relies on it)
+     - get_worn_equipment returns the DD RENDERED half: name EMPTY, keywords
+       present (zad_Lockable + zad_DeviousCollar) - so keywords are the only
+       reliable identifier here, and they are enough.
+
+   ★ COVERAGE, measured over 1,549 unique worn records: the first four markers
+   catch 93.3%; with the ten class keywords added, every remaining real device
+   is caught. The ~44 left over are 18 ZaZ non-gear markers (which SHOULD show
+   nothing) and content-mod records carrying no framework keyword at all -
+   those sit outside IsCoveredDevice() too, so this is the same boundary our
+   own model already has, not a new hole.
+
+   ⚠ DEVICES ARE NOT SILENCED - THEY ARE MOVED. 0490 gives the wearer the
+   complete picture and 0950 gives an onlooker the layer-filtered one, both
+   with real names, duration and state. This file only stops the raw dump from
+   contradicting them.
+   ═══════════════════════════════════════════════════════════════════════════ #}
+    ### Worn Equipment
+    {% set npc_equipment = get_worn_equipment(actorUUID) %}
+    {% set tempered_items = get_tempered_items(actorUUID) %}
+    {% for slot, item in npc_equipment %}
+        {%- set _kw = [] %}{% for k in item.keywords %}{% set _kw = append(_kw, k.editorID) %}{% endfor %}
+        {%- set _isdev = ("zad_Lockable" in _kw) or ("zbfWornDevice" in _kw) or ("DOMWornDevice" in _kw) or ("zad_DeviousPlug" in _kw) or ("zad_DeviousCollar" in _kw) or ("zad_DeviousBoots" in _kw) or ("zad_DeviousGag" in _kw) or ("zad_DeviousBlindfold" in _kw) or ("zad_DeviousLegCuffs" in _kw) or ("zad_DeviousSuit" in _kw) or ("zad_DeviousGloves" in _kw) or ("zad_DeviousPonyGear" in _kw) or ("zad_DeviousArmCuffs" in _kw) or ("zad_DeviousPlugVaginal" in _kw) %}
+        {% if is_item_enabled(item.formID) and not _isdev %}
+            {# Tempered quality, from Beta 25's base copy - kept in the rebase #}
+            {% set quality = "" %}
+            {% for t in tempered_items %}
+                {% if t.formID == item.formID and isString(t.quality) and length(t.quality) > 0 %}
+                    {% set quality = t.quality %}
+                {% endif %}
+            {% endfor %}
+            {# Try OmniSight name/description (gender-aware) first, then fall back to item customization #}
+            {% set omnisight_name = get_item_name_for_wearer(item.formID, actorUUID) %}
+            {% set omnisight_desc = get_item_description_for_wearer(item.formID, actorUUID) %}
+            {% if length(omnisight_name) > 0 %}
+                {% set item_name = omnisight_name %}
+                {% set original_name = get_item_customization(item.formID).originalName %}
+            {% else %}
+                {% set item_name = get_item_name(item.formID) %}
+                {% set original_name = "" %}
+            {% endif %}
+            {% if length(omnisight_desc) > 0 %}
+                {% set item_desc = omnisight_desc %}
+            {% else %}
+                {% set item_desc = get_item_description(item.formID) %}
+            {% endif %}
+            {% if item.equipment_slot == "leftHand" or item.equipment_slot == "rightHand" %}
+                - {% if length(item_desc) > 0 %}{{ item_name }}{% if length(original_name) > 0 and original_name != item_name %} ({{ original_name }}){% endif %}{% if isString(quality) and length(quality) > 0 %} [{{ quality }}]{% endif %} - {{ item_desc }}{% else %}**{{ item.equipment_slot }}**: {{ item_name }}{% if length(original_name) > 0 and original_name != item_name %} ({{ original_name }}){% endif %}{% if isString(quality) and length(quality) > 0 %} [{{ quality }}]{% endif %}{% endif %} {% if has_weapon_drawn(actorUUID) %}(drawn){% else %}(sheathed){% endif %}
+            {% else %}
+                - {% if length(item_desc) > 0 %}{{ item_name }}{% if length(original_name) > 0 and original_name != item_name %} ({{ original_name }}){% endif %}{% if isString(quality) and length(quality) > 0 %} [{{ quality }}]{% endif %} - {{ item_desc }}{% else %}**{{ item.slot_body_area }}**: {{ item_name }}{% if length(original_name) > 0 and original_name != item_name %} ({{ original_name }}){% endif %}{% if isString(quality) and length(quality) > 0 %} [{{ quality }}]{% endif %}{% endif %}
+            {% endif %} {# end left hand / right hand check #}
+        {% endif %}{# end is item enabled #}
+    {% endfor %}
+
+    This list is the ground truth of the CLOTHING AND ARMOR you are currently wearing. If a garment is not listed above, you are NOT wearing it regardless of what was discussed. Never claim to have put on or be wearing a garment that does not appear here.
+    {# REWORDED FROM SEVERACTIONS' ORIGINAL, which said "if an item is not listed above, you are NOT wearing it". That was safe while the list held everything; now that restraints are filtered out of it, the original wording would TEACH HER TO DENY her own devices and contradict the 0490 block that tells her about them. #}
+    Restraints and locked-on devices are NOT listed here - they are described separately, in more detail, further down. Do not conclude from this list that you are wearing none.
+{% endif %} {# End render_mode check #}
+
+{% if render_mode == "dialogue_target" %}
+    {% if responseTarget and responseTarget.UUID != 0 %}
+        ### Worn Equipment
+        {% set target_equipment = get_worn_equipment(responseTarget.UUID) %}
+        {% set tempered_items = get_tempered_items(responseTarget.UUID) %}
+        {% for slot, item in target_equipment %}
+            {%- set _kw = [] %}{% for k in item.keywords %}{% set _kw = append(_kw, k.editorID) %}{% endfor %}
+            {%- set _isdev = ("zad_Lockable" in _kw) or ("zbfWornDevice" in _kw) or ("DOMWornDevice" in _kw) or ("zad_DeviousPlug" in _kw) or ("zad_DeviousCollar" in _kw) or ("zad_DeviousBoots" in _kw) or ("zad_DeviousGag" in _kw) or ("zad_DeviousBlindfold" in _kw) or ("zad_DeviousLegCuffs" in _kw) or ("zad_DeviousSuit" in _kw) or ("zad_DeviousGloves" in _kw) or ("zad_DeviousPonyGear" in _kw) or ("zad_DeviousArmCuffs" in _kw) or ("zad_DeviousPlugVaginal" in _kw) %}
+            {% if is_item_enabled(item.formID) and not _isdev %}
+                {# Tempered quality, from Beta 25's base copy - kept in the rebase #}
+                {% set quality = "" %}
+                {% for t in tempered_items %}
+                    {% if t.formID == item.formID and isString(t.quality) and length(t.quality) > 0 %}
+                        {% set quality = t.quality %}
+                    {% endif %}
+                {% endfor %}
+                {# Try OmniSight name/description (gender-aware) first, then fall back to item customization #}
+                {% set omnisight_name = get_item_name_for_wearer(item.formID, responseTarget.UUID) %}
+                {% set omnisight_desc = get_item_description_for_wearer(item.formID, responseTarget.UUID) %}
+                {% if length(omnisight_name) > 0 %}
+                    {% set item_name = omnisight_name %}
+                    {% set original_name = get_item_customization(item.formID).originalName %}
+                {% else %}
+                    {% set item_name = get_item_name(item.formID) %}
+                    {% set original_name = "" %}
+                {% endif %}
+                {% if length(omnisight_desc) > 0 %}
+                    {% set item_desc = omnisight_desc %}
+                {% else %}
+                    {% set item_desc = get_item_description(item.formID) %}
+                {% endif %}
+                {% if item.equipment_slot == "leftHand" or item.equipment_slot == "rightHand" %}
+                    - {% if length(item_desc) > 0 %}{{ item_name }}{% if length(original_name) > 0 and original_name != item_name %} ({{ original_name }}){% endif %}{% if isString(quality) and length(quality) > 0 %} [{{ quality }}]{% endif %} - {{ item_desc }}{% else %}**{{ item.equipment_slot }}**: {{ item_name }}{% if length(original_name) > 0 and original_name != item_name %} ({{ original_name }}){% endif %}{% if isString(quality) and length(quality) > 0 %} [{{ quality }}]{% endif %}{% endif %} {% if has_weapon_drawn(responseTarget.UUID) %}(drawn){% else %}(sheathed){% endif %}
+                {% else %}
+                    - {% if length(item_desc) > 0 %}{{ item_name }}{% if length(original_name) > 0 and original_name != item_name %} ({{ original_name }}){% endif %}{% if isString(quality) and length(quality) > 0 %} [{{ quality }}]{% endif %} - {{ item_desc }}{% else %}**{{ item.slot_body_area }}**: {{ item_name }}{% if length(original_name) > 0 and original_name != item_name %} ({{ original_name }}){% endif %}{% if isString(quality) and length(quality) > 0 %} [{{ quality }}]{% endif %}{% endif %}
+                {% endif %} {# end left hand / right hand check #}
+            {% endif %}{# end is item enabled #}
+        {% endfor %}
+    {% endif %}
+{% endif %} {# end render mode check #}

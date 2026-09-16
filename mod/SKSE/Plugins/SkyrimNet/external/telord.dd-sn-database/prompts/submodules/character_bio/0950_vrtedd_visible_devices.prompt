@@ -1,0 +1,79 @@
+{% if render_mode == "dialogue_target" %}
+{% if responseTarget and responseTarget.UUID != 0 %}
+{#
+  ⛔ THE GUARD ABOVE MUST STAY IN THE FIRST 5 LINES. SkyrimNet validates every
+  character_bio submodule by requiring that the first five lines contain both
+  the word render_mode AND an if-statement opener — and when it fails it logs a
+  warning AND raises
+  a dashboard SHAME BANNER on every single load. This file did exactly that from
+  2026-08-30 until it was caught in the live log the same day: the comment block
+  used to come first and pushed the guard to line 39. The block still rendered
+  (it is a lint warning, not a rejection) — but do not put anything above the
+  guard again.
+
+  VRTE DD/ZaZ AddOn — what ANOTHER actor can SEE she is wearing.   (2026-08-30)
+
+  ⛔ WHY THIS FILE EXISTS. Measured 2026-08-30: SkyrimNet's own
+  0410_equipment.prompt renders `get_worn_equipment` in the LIVE dialogue prompt
+  through its `dialogue_target` branch, and that function returns every worn
+  item WITH ITS KEYWORDS. So a plug worn under full plate is already being
+  described to whoever she is talking to, clothing entirely ignored. Report 30
+  §1 has the file-by-file trace.
+
+  The user's rule: "An NPC with plugs, but wearing clothes or armors, won't have
+  them seen by other NPC."
+
+  ★ THIS IS THE FILTERED CHANNEL. vrtedd_worn_visible runs the same worn-device
+  composition as the wearer's own block, then drops anything the four-layer
+  visibility rule says is hidden:
+      INTERNAL  never shown - it is inside the body
+      UNDER     shown only while its region is bare of clothes and armor
+      MID       always shown - it REPLACES clothing
+      OUTER     always shown - it goes over everything
+  The access line ("Sealed by what is worn…") is dropped too: what a device
+  seals is knowledge about her body, not something a bystander observes.
+
+  ⚠ RENDER MODE IS `dialogue_target` ONLY, and that is the whole point. In
+  "full" mode this submodule describes the SPEAKING NPC to herself - and she
+  does not need the censored view of her own body; she gets the complete one
+  from 0917_vrtedd_worn.prompt in user_final_instructions. Rendering here in
+  full mode would both duplicate that block and describe her to herself in the
+  third person.
+
+  ⚠ Guarded with isString, never `!= ""`: an empty Papyrus decorator result
+  arrives as an empty JSON object `{}`, and `{} != ""` is TRUE. That bug once
+  put the gag block on every NPC in the game for a full session.
+
+  ⚠ Numbered 0950 so it sorts AFTER SkyrimNet's own 0410_equipment block - the
+  reader meets the raw equipment list first, then this, which is the one that
+  actually knows what the gear IS.
+
+  ★ 2026-09-10: THE OUTWARD SIGNS OF A RECENT RELEASE. vrtedd_aftermath_visible
+  returns what a bystander can SEE a restraint has just left on them - a limb being
+  shaken out, a pressed line, wet skin - for the first two of the wearer's three
+  after-state prompts (0790). It replaced a short-lived witness EVENT: the Database
+  is awareness only. Where nothing shows outwardly it returns "" and says nothing.
+#}
+{# ★ 1.3.0 (2026-09-14): STATE FILE FIRST, decorator as the fallback. VRTE_DDZaZ.dll writes
+   Data/SKSE/Plugins/VRTE_DDZaZ/prompt_state.json the instant a device goes on or off, a name
+   arrives, a restraint is released; read_json re-reads on the file's mtime and the random second
+   argument defeats SkyrimNet's 55 s callback cache (VRTouchEvents' recipe, VR-verified, report 45).
+   Matched on the SkyrimNet entity UUID. No entry for her = the old decorator path, unchanged. #}
+{% set _ds = read_json("VRTE_DDZaZ/prompt_state", random * 10000 + random * 100 + random) %}
+{% set _de = 0 %}
+{% if isObject(_ds) and existsIn(_ds, "npcs") %}{% for _e in _ds.npcs %}{% if _e.uuid == responseTarget.UUID %}{% set _de = _e %}{% endif %}{% endfor %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "worn_visible") %}{% set _vd_seen = _de.worn_visible %}{% else %}{% set _vd_seen = vrtedd_worn_visible(responseTarget.UUID) %}{% endif %}
+{% if isString(_vd_seen) and _vd_seen != "" %}
+### What you can see they are wearing
+
+{{ _vd_seen }}
+This is only what is visible on them. Anything worn under their clothing, or inside their body, you have no way of knowing about unless you are told.
+{% endif %}
+{% if isObject(_de) and existsIn(_de, "after_visible") %}{% set _vd_marks = _de.after_visible %}{% else %}{% set _vd_marks = vrtedd_aftermath_visible(responseTarget.UUID) %}{% endif %}
+{% if isString(_vd_marks) and _vd_marks != "" %}
+### What a restraint has just left on them
+
+{{ _vd_marks }}
+{% endif %}
+{% endif %}
+{% endif %}

@@ -1,0 +1,111 @@
+{#
+  ★★ THE STANDING RULE FOR EVERY BLOCK IN THIS FOLDER (user, 2026-09-08):
+  ENFORCE, DO NOT NEGATE.
+
+      wrong: "you cannot remove this device if you don't have the key"
+      right: "this device can only be removed with the proper key and will
+              stay on otherwise"
+
+  The user's reasoning, and it matches what 0792 recorded back in August ("LLM
+  do really bad with negative, make them focus on what not to do and end up
+  doing it"): a prohibition still puts the forbidden thing in the model's
+  context, described in detail, and a model that has just read a vivid
+  description of clean dialogue is more likely to write clean dialogue.
+
+  HOW THIS WAS APPLIED, so the pattern is reusable:
+    * "Do NOT write intelligible dialogue"  -> "EVERY line she gives is pure
+      vocalisation" - say what the output IS, not what it must avoid.
+    * "Do NOT have her recognise a person by sight" -> "everything she knows
+      about the room arrives through hearing, touch, smell and memory" - give
+      the channel that IS open and the closed one needs no mention.
+    * "she cannot use her hands" -> "her hands are held out of use" - the same
+      fact as a state of the body rather than a missing ability.
+    * "It does not come off on its own" -> "It stays exactly as it was put on
+      ... time is on the device's side."
+
+  ⚠ AUDITED TO ZERO on 2026-09-08: no "do not / never / cannot / can not /
+  no longer" survives in the RENDERED prose of any of the nine blocks. Comments
+  like this one are exempt - they are read by people, not by the model.
+  Re-run the check before shipping a prompt edit; it is trivial to regress.
+#}
+{#
+  ★★ RENUMBERED 0917 -> 0890 ON 2026-09-08, AND THE NUMBER IS THE POINT.
+  The user, after reading a live request: "DEVICES CURRENTLY WORN BY Sofia is
+  after her current sense deprivation device. It's better to have it before -
+  tell her what she is wearing, than tell Sofia what her current restriction
+  are."
+  So the WORN list now renders BEFORE every state block (0910 restraint, 0915
+  blind, 0916 deaf, 0940 gag): the objects first, then what they take away.
+  ⚠ Do not renumber this back above 0900 without that ruling being reversed.
+#}
+{#
+  VRTE DD/ZaZ AddOn - devices currently worn, and how they feel by now.
+                                                            (2026-08-26)
+
+  User: "make it a tab in final_instruction like 'device currently worn and
+  effect' and follow up with the list of device worn, small description and
+  currently how long they been in it and how it feel."
+
+  ── WHERE THE TEXT COMES FROM ──────────────────────────────────────────────
+  The whole block is built in VRTE_DDZaZ.dll and arrives as ONE string. That is
+  deliberate: SkyrimNet pre-computes every Papyrus decorator for every nearby
+  entity on every render cycle, so walking her worn armor in Papyrus - or worse,
+  in Jinja - would multiply by actors AND by cycles. The DLL walks it once.
+
+  ── WHAT IS IN IT ──────────────────────────────────────────────────────────
+  One line per device: what it is, how long it has been on, and the physical
+  state that follows from that. Three things drive the wording:
+
+    * CLASS      what the thing does to the body (an armbinder holds the arms
+                 folded behind the back; a ring gag holds the mouth open)
+    * MATERIAL   read off the device's own NAME, which is where DD and every
+                 content mod actually encode it - iron, ebonite, rusted, and
+                 the soulgem ladder from a faint prickle up to a black gem
+                 pulling at her own magicka
+    * DURATION   a real clock in GAME hours, running from when it went on
+
+  ── THE STRAIN CURVE, AND ITS LIMITS ───────────────────────────────────────
+  Devices that hold a joint under load - the armbinder family, yokes, pet
+  suits, ballet boots - accumulate strain on a five-phase curve. Plain wrist and
+  ankle cuffs do NOT: they chafe and ache and stop there, permanently, because
+  a pair of cuffs can be worn for days without harm. Gags, blindfolds, plugs and
+  piercings have no strain curve at all - they get a sensation line instead.
+  Nothing here escalates a device beyond what it physically does.
+
+  ⚠ THE ONE RULE WORTH READING TWICE, and the DLL appends it only when it can
+    apply: at the last phase the REPORTED pain FALLS while the harm is greatest,
+    because sensation itself is failing. A falling complaint is not improvement.
+    It is stated in the block itself rather than here so it travels with the
+    state it describes.
+
+  ⚠ Guarded with isString, never `!= ""`: an empty Papyrus decorator result
+    arrives as an empty JSON object `{}`, and `{} != ""` is TRUE. That bug put
+    two blocks on every NPC in the game for a session (report 23 §32).
+
+  ⚠ Renders in EVERY mode, thoughts included. What is locked on her body and how
+    long it has been there is a fact she is aware of; suppressing it in thoughts
+    mode would have her think as though her own body were not involved.
+
+  ⚠ Neutral throughout. Every line reports mechanism and sensation - what the
+    device does and what the body feels. Never fear, shame, arousal, need or
+    resignation. How any of it lands is hers to play.
+#}
+{% if exists("npc") and existsIn(npc, "UUID") %}
+{# ★ 1.3.0 (2026-09-14): STATE FILE FIRST, decorator as the fallback. VRTE_DDZaZ.dll writes
+   Data/SKSE/Plugins/VRTE_DDZaZ/prompt_state.json the instant a device goes on or off, a name
+   arrives, a restraint is released; read_json re-reads on the file's mtime and the random second
+   argument defeats SkyrimNet's 55 s callback cache (VRTouchEvents' recipe, VR-verified, report 45).
+   Matched on the SkyrimNet entity UUID. No entry for her = the old decorator path, unchanged. #}
+{% set _ds = read_json("VRTE_DDZaZ/prompt_state", random * 10000 + random * 100 + random) %}
+{% set _de = 0 %}
+{% if isObject(_ds) and existsIn(_ds, "npcs") %}{% for _e in _ds.npcs %}{% if _e.uuid == npc.UUID %}{% set _de = _e %}{% endif %}{% endfor %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "worn") %}{% set _vd_worn = _de.worn %}{% else %}{% set _vd_worn = vrtedd_worn_devices(npc.UUID) %}{% endif %}
+{% if isString(_vd_worn) and _vd_worn != "" %}
+{% set _p = "he" %}{% set _pp = "his" %}
+{% if decnpc(npc.UUID).isFemale %}{% set _p = "she" %}{% set _pp = "her" %}{% endif %}
+**DEVICES CURRENTLY WORN BY {{ decnpc(npc.UUID).name }}.** These are locked on {{ _pp }} body right now. Each line gives the device, how long it has been on, and what {{ _p }} physically feels from it at this point.
+
+{{ _vd_worn }}
+Treat all of it as ongoing bodily fact. {{ _p | capitalize }} is LIVING in it: it colours {{ _pp }} posture, {{ _pp }} movement and where {{ _pp }} attention goes, in every line, whether or not {{ _p }} mentions it. Let it reach {{ _pp }} speech where it would naturally come up, and let it shape {{ _pp }} body language everywhere else.
+{% endif %}
+{% endif %}

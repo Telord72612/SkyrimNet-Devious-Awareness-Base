@@ -1,0 +1,84 @@
+{#
+  ★★ THE STANDING RULE FOR EVERY BLOCK IN THIS FOLDER (user, 2026-09-08):
+  ENFORCE, DO NOT NEGATE.
+
+      wrong: "you cannot remove this device if you don't have the key"
+      right: "this device can only be removed with the proper key and will
+              stay on otherwise"
+
+  The user's reasoning, and it matches what 0792 recorded back in August ("LLM
+  do really bad with negative, make them focus on what not to do and end up
+  doing it"): a prohibition still puts the forbidden thing in the model's
+  context, described in detail, and a model that has just read a vivid
+  description of clean dialogue is more likely to write clean dialogue.
+
+  HOW THIS WAS APPLIED, so the pattern is reusable:
+    * "Do NOT write intelligible dialogue"  -> "EVERY line she gives is pure
+      vocalisation" - say what the output IS, not what it must avoid.
+    * "Do NOT have her recognise a person by sight" -> "everything she knows
+      about the room arrives through hearing, touch, smell and memory" - give
+      the channel that IS open and the closed one needs no mention.
+    * "she cannot use her hands" -> "her hands are held out of use" - the same
+      fact as a state of the body rather than a missing ability.
+    * "It does not come off on its own" -> "It stays exactly as it was put on
+      ... time is on the device's side."
+
+  ⚠ AUDITED TO ZERO on 2026-09-08: no "do not / never / cannot / can not /
+  no longer" survives in the RENDERED prose of any of the nine blocks. Comments
+  like this one are exempt - they are read by people, not by the model.
+  Re-run the check before shipping a prompt edit; it is trivial to regress.
+#}
+{#
+  VRTE DD/ZaZ AddOn - the gag came OFF.        (2026-08-23, reworded 2026-08-24)
+
+  USER'S PROBLEM, verbatim: "after removing it, she won't speak again cause the
+  LLM is used to not speak and it's part of it's context."
+
+  That is the real failure, and it is not a fault in 0900. The gag block did its
+  job; the LLM then has three or four turns of muffled non-speech sitting in its
+  context window and goes on imitating them. Withdrawing an instruction does not
+  undo the examples it already produced. So the release needs its OWN
+  instruction, and only for as long as those muffled turns are still in view.
+
+  ⚠⚠ WRITTEN IN THE POSITIVE, ON PURPOSE (user, 2026-08-24): "it's full of
+  negative, like 'Do not write another Mmmph, do not keep her silent'. LLM do
+  really bad with negative, make them focus on what not to do and end up doing
+  it."
+  They are right, and it matters most HERE of all places: this block's whole job
+  is to stop an imitation, and the old wording printed the very thing to imitate
+  ("Mmmph") in the instruction meant to prevent it. Every line now names the
+  behaviour we WANT. Where a boundary genuinely has to be drawn it is phrased as
+  what IS true - "every reply is spoken aloud, in full" - not as a prohibition.
+
+  vrtedd_ungagged(uuid) returns "3"/"2"/"1" for the next three renders after the
+  gag comes off, then "". It returns "" while she is STILL gagged, which is what
+  makes this and 0900 mutually exclusive with no coordination between them, and
+  re-gagging cancels the countdown on the very next render.
+
+  ⚠ Guarded with isString, never `!= ""` - an empty Papyrus decorator result
+  arrives as an empty JSON object `{}` and `{} != ""` is TRUE.
+#}
+{% if exists("npc") and existsIn(npc, "UUID") %}
+{# ★ 1.3.0 (2026-09-14): STATE FILE FIRST, decorator as the fallback. VRTE_DDZaZ.dll writes
+   Data/SKSE/Plugins/VRTE_DDZaZ/prompt_state.json the instant a device goes on or off, a name
+   arrives, a restraint is released; read_json re-reads on the file's mtime and the random second
+   argument defeats SkyrimNet's 55 s callback cache (VRTouchEvents' recipe, VR-verified, report 45).
+   Matched on the SkyrimNet entity UUID. No entry for her = the old decorator path, unchanged. #}
+{% set _ds = read_json("VRTE_DDZaZ/prompt_state", random * 10000 + random * 100 + random) %}
+{% set _de = 0 %}
+{% if isObject(_ds) and existsIn(_ds, "npcs") %}{% for _e in _ds.npcs %}{% if _e.uuid == npc.UUID %}{% set _de = _e %}{% endif %}{% endfor %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "ungag") %}{% set _vd_ung = _de.ungag %}{% else %}{% set _vd_ung = vrtedd_ungagged(npc.UUID) %}{% endif %}
+{% if (isString(_vd_ung) and _vd_ung != "") and not worn_has_keyword(npc.UUID, "zad_DeviousGag") %}
+{% set _p = "he" %}{% set _pp = "his" %}{% set _po = "him" %}
+{% if decnpc(npc.UUID).isFemale %}{% set _p = "she" %}{% set _pp = "her" %}{% set _po = "her" %}{% endif %}
+**THE GAG IS OFF — {{ decnpc(npc.UUID).name }} SPEAKS NORMALLY AGAIN.** It has just been taken out of {{ _pp }} mouth. {{ _pp | capitalize }} jaw, tongue and lips are {{ _pp }} own again and {{ _p }} has {{ _pp }} full voice back.
+
+**Write {{ _po }} as a person who can talk.** Every reply from here is spoken aloud, in words, in complete sentences — the way {{ _p }} spoke before the gag went on. The gagged turns further up are finished business; this reply starts from a mouth that works.
+
+Anything {{ _p }} was asked while the gag was on can be answered now in plain language. Anything that came out as sound instead of words can be put into words. Whether {{ _p }} does so, and what {{ _p }} says, follows from the conversation and from who {{ _p }} is.
+
+{{ _p | capitalize }} may work {{ _pp }} jaw or wet {{ _pp }} mouth as {{ _p }} begins. Any soreness the gag left is told in the block about what it left behind.
+
+How {{ _p }} feels about having been gagged, or about it coming off, is yours to play.
+{% endif %}
+{% endif %}

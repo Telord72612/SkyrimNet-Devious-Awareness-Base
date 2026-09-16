@@ -1,0 +1,16 @@
+SpriggitSource:
+  PackageName: Spriggit.Yaml.Skyrim
+  Version: 0.40
+ModKey: DD SN Database.esp
+GameRelease: SkyrimSE
+ModHeader:
+  Flags:
+  - Small
+  Stats:
+    Version: 1.7
+  Author: mad72
+  Description: 'Devious Devices / ZaZ / Diary-of-Mine awareness for SkyrimNet: the DATABASE half. One quest, whose only job is to give the awareness scripts a script instance - Papyrus RegisterForModEvent needs one, and DD sends its climax and device-name events as Forms, which a C++ sink cannot receive. No items, no NPCs, no world edits, no aliases beyond the player. SE / AE / VR. VRTouchEvents is NOT required.'
+  MasterReferences:
+  - Master: Skyrim.esm
+    FileSize: 0
+  INTV: 1

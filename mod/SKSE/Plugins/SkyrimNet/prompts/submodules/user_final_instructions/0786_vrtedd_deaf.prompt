@@ -1,0 +1,104 @@
+{#
+  ★★ THE STANDING RULE FOR EVERY BLOCK IN THIS FOLDER (user, 2026-09-08):
+  ENFORCE, DO NOT NEGATE.
+
+      wrong: "you cannot remove this device if you don't have the key"
+      right: "this device can only be removed with the proper key and will
+              stay on otherwise"
+
+  The user's reasoning, and it matches what 0792 recorded back in August ("LLM
+  do really bad with negative, make them focus on what not to do and end up
+  doing it"): a prohibition still puts the forbidden thing in the model's
+  context, described in detail, and a model that has just read a vivid
+  description of clean dialogue is more likely to write clean dialogue.
+
+  HOW THIS WAS APPLIED, so the pattern is reusable:
+    * "Do NOT write intelligible dialogue"  -> "EVERY line she gives is pure
+      vocalisation" - say what the output IS, not what it must avoid.
+    * "Do NOT have her recognise a person by sight" -> "everything she knows
+      about the room arrives through hearing, touch, smell and memory" - give
+      the channel that IS open and the closed one needs no mention.
+    * "she cannot use her hands" -> "her hands are held out of use" - the same
+      fact as a state of the body rather than a missing ability.
+    * "It does not come off on its own" -> "It stays exactly as it was put on
+      ... time is on the device's side."
+
+  ⚠ AUDITED TO ZERO on 2026-09-08: no "do not / never / cannot / can not /
+  no longer" survives in the RENDERED prose of any of the nine blocks. Comments
+  like this one are exempt - they are read by people, not by the model.
+  Re-run the check before shipping a prompt edit; it is trivial to regress.
+#}
+{#
+  VRTE DD/ZaZ AddOn - hearing dulled.                        (2026-08-27)
+
+  User: "the hearing one is a weird one, as the LLM will still hear the player,
+  but will have to act like they didn't heard."
+
+  ★ THAT IS THE WHOLE DESIGN PROBLEM, AND IT IS UNLIKE THE OTHER FIVE. Every
+  other category removes an ABILITY - a bound NPC simply does not use her hands,
+  a blind one does not use her eyes - and a model can comply by NOT doing
+  something. This one removes an INPUT the model is still handed: SkyrimNet
+  builds the dialogue prompt from the player's actual words no matter what any
+  decorator says. Telling the model "you did not hear that" while showing it the
+  sentence is asking it to unsee text on its own page, and models are poor at it.
+
+  ★ SO THIS BLOCK DOES NOT ASK FOR THAT. It reframes the input instead: the
+  words still arrive, but they arrive as SOUND THROUGH A HOOD. The instruction
+  is what to answer - tone, volume, rhythm, whether it was even aimed at her -
+  rather than what to ignore. That is a positive instruction about a channel she
+  still has, which is the same lesson 0925 records ("LLM do really bad with
+  negative, make them focus on what not to do and end up doing it").
+
+  ⛔ AND IT IS ALSO WHAT THE GEAR ACTUALLY DOES. There is NO hearing keyword in
+  DD or ZaZ - the load order was scanned and the only device that reaches the
+  ears is the HOOD (134 records). A hood muffles; it does not deafen. So
+  "dulled" is not a softening of the design, it is the accurate reading, and the
+  worn-device block has said "dulling sound" about every hood all along.
+
+  ⚠ PARTIAL, NOT ABSOLUTE - so the model is given a threshold it can apply
+  consistently: her own name and a shout get through, ordinary conversation does
+  not. Without a rule she would either hear everything or nothing.
+
+  ⚠ Renders in EVERY mode, thoughts included. Her inner monologue is exactly
+  where "someone is talking, I can't tell what about" belongs.
+
+  ⚠ Guarded with isString, never `!= ""`: an empty Papyrus decorator result
+  arrives as an empty JSON object `{}`, and `{} != ""` is TRUE. See 0910.
+
+  ⚠ Neutral. What she can and cannot make out, never how that feels about it.
+#}
+{% if exists("npc") and existsIn(npc, "UUID") %}
+{# ★ 1.3.0 (2026-09-14): STATE FILE FIRST, decorator as the fallback. VRTE_DDZaZ.dll writes
+   Data/SKSE/Plugins/VRTE_DDZaZ/prompt_state.json the instant a device goes on or off, a name
+   arrives, a restraint is released; read_json re-reads on the file's mtime and the random second
+   argument defeats SkyrimNet's 55 s callback cache (VRTouchEvents' recipe, VR-verified, report 45).
+   Matched on the SkyrimNet entity UUID. No entry for her = the old decorator path, unchanged. #}
+{% set _ds = read_json("VRTE_DDZaZ/prompt_state", random * 10000 + random * 100 + random) %}
+{% set _de = 0 %}
+{% if isObject(_ds) and existsIn(_ds, "npcs") %}{% for _e in _ds.npcs %}{% if _e.uuid == npc.UUID %}{% set _de = _e %}{% endif %}{% endfor %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "deaf") %}{% set _vd_deaf = _de.deaf %}{% else %}{% set _vd_deaf = vrtedd_deaf(npc.UUID) %}{% endif %}
+{#
+  ⚠ NO NATIVE FALLBACK HERE, AND THAT IS DELIBERATE (2026-09-08).
+  0780 and 0785 gained one because a decorator cache miss was silently deleting
+  them. Deaf cannot have the same treatment: the only native that would work is
+  `worn_has_keyword(zad_DeviousHood)`, and that is EXACTLY the test the
+  blindfold fix removed - five DD records named "... Blocking Blindfold" carry
+  that keyword while rendering a blindfold mesh, and gating on it here would
+  deafen their wearer all over again, on the very day it was fixed.
+  A cache miss therefore costs this block, which is the safe direction: a
+  wrongly-deaf NPC is a worse failure than a briefly-absent muffling note.
+#}
+{% if isString(_vd_deaf) and _vd_deaf != "" %}
+{% set _p = "he" %}{% set _pp = "his" %}{% set _po = "him" %}
+{% if decnpc(npc.UUID).isFemale %}{% set _p = "she" %}{% set _pp = "her" %}{% set _po = "her" %}{% endif %}
+**HEARING IS MUFFLED — {{ decnpc(npc.UUID).name }} HEARS SOUND, NOT WORDS.** {{ _pp | capitalize }} ears are covered by {{ _vd_deaf }}. Sound still reaches {{ _po }}, but it arrives thick and blurred, as if through a wall.
+
+**You are shown what was said. What reached {{ _po }} was the SOUND of it.** Treat the dialogue {{ _p }} is answering as a shape rather than a sentence: {{ _p }} has that someone spoke, roughly where they stood, whether the voice was raised or level, fast or slow, and whether it was aimed at {{ _po }} or past {{ _po }}. Everything {{ _p }} answers, {{ _p }} answers from that.
+
+Answer the SOUND. {{ _p | capitalize }} may respond to a raised voice, to a tone that reads as angry or coaxing, to being addressed at all — and {{ _p }} may read that tone wrongly. {{ _p | capitalize }} may guess at what was meant, or answer something that was not asked.
+
+**What reaches {{ _po }} as WORDS:** {{ _pp }} own name said loudly or close, a shout, a scream, a door, a blade drawn - anything with force behind it. **What reaches {{ _po }} as SOUND ONLY:** ordinary conversation, anything said across a room or at {{ _pp }} back, anything said quietly, a name mentioned in passing.
+
+It stays exactly as it was put on. It comes off only when someone else opens it with the proper key, and it holds just as firmly after hours as it did in the first minute — time is on the device's side.
+{% endif %}
+{% endif %}

@@ -1,0 +1,142 @@
+{#
+  ★★ THE STANDING RULE FOR EVERY BLOCK IN THIS FOLDER (user, 2026-09-08):
+  ENFORCE, DO NOT NEGATE.
+
+      wrong: "you cannot remove this device if you don't have the key"
+      right: "this device can only be removed with the proper key and will
+              stay on otherwise"
+
+  The user's reasoning, and it matches what 0792 recorded back in August ("LLM
+  do really bad with negative, make them focus on what not to do and end up
+  doing it"): a prohibition still puts the forbidden thing in the model's
+  context, described in detail, and a model that has just read a vivid
+  description of clean dialogue is more likely to write clean dialogue.
+
+  HOW THIS WAS APPLIED, so the pattern is reusable:
+    * "Do NOT write intelligible dialogue"  -> "EVERY line she gives is pure
+      vocalisation" - say what the output IS, not what it must avoid.
+    * "Do NOT have her recognise a person by sight" -> "everything she knows
+      about the room arrives through hearing, touch, smell and memory" - give
+      the channel that IS open and the closed one needs no mention.
+    * "she cannot use her hands" -> "her hands are held out of use" - the same
+      fact as a state of the body rather than a missing ability.
+    * "It does not come off on its own" -> "It stays exactly as it was put on
+      ... time is on the device's side."
+
+  ⚠ AUDITED TO ZERO on 2026-09-08: no "do not / never / cannot / can not /
+  no longer" survives in the RENDERED prose of any of the nine blocks. Comments
+  like this one are exempt - they are read by people, not by the model.
+  Re-run the check before shipping a prompt edit; it is trivial to regress.
+#}
+{#
+  VRTE DD/ZaZ AddOn - restraint ACTION constraint.    (rebuilt 2026-08-24)
+
+  A gag takes SPEECH (0900); a blindfold takes SIGHT (0915); a restraint takes
+  ACTION - this file. User's rule: "Handcuff and other restrictive device will
+  need to do something similar in the same .prompt, but about not being able to
+  chose any 'action'."
+
+  Numbering: after 0750_embedded_actions, which is the block this one has to be
+  able to overrule - 0750 is what offers the `ACTION:` line in the first place.
+
+  ── WHAT CHANGED 2026-08-24 ────────────────────────────────────────────────
+  The keyword lists that used to live in this template are gone. Three
+  decorators now answer instead, and the DLL behind them folds together:
+    * Devious Devices / ZaZ / Diary-of-Mine keywords, built in
+    * SKSE/Plugins/VRTE_DDZaZ_Restraints.ini - the user's own gear, matched by
+      NAME, FormID or worn keyword
+    * SPELLS and active magic effects
+  `worn_has_keyword` could only ever do the first of those, and a template is
+  the wrong place for a list a user is meant to extend.
+
+  ⚠ GUARDED WITH isString, NOT `!= ""`. A Papyrus decorator returning an empty
+  string arrives here as an empty JSON OBJECT `{}` (SkyrimNet caches them
+  through ExecuteAllPapyrusDecoratorsAsync), and `{} != ""` is TRUE. Testing
+  `!= ""` put this block up permanently, on every NPC in the game, for a full
+  session. NEVER test a Papyrus decorator's result with `!= ""`.
+
+  ⚠ [all] renders INSTEAD of [arms] and [legs], not alongside them. A pet suit
+  is not "arms plus legs", it is its own state, and listing three overlapping
+  paragraphs reads as three separate devices.
+
+  ⚠ render_mode: the physical facts render in EVERY mode, thoughts included - a
+  bound NPC thinking to herself knows perfectly well that she is bound. Only the
+  ACTION rules are held back from thoughts mode, where no `ACTION:` line is
+  offered and the rules would be noise. Constrain the body, never the mind.
+
+  ⚠ NEVER an emotion word. User, standing: "never implying emotion, like pain or
+  fear, always neutral to keep the NPC/LLM to roleplay themself properly."
+#}
+{% if exists("npc") and existsIn(npc, "UUID") %}
+{# ★ 1.3.0 (2026-09-14): STATE FILE FIRST, decorator as the fallback. VRTE_DDZaZ.dll writes
+   Data/SKSE/Plugins/VRTE_DDZaZ/prompt_state.json the instant a device goes on or off, a name
+   arrives, a restraint is released; read_json re-reads on the file's mtime and the random second
+   argument defeats SkyrimNet's 55 s callback cache (VRTouchEvents' recipe, VR-verified, report 45).
+   Matched on the SkyrimNet entity UUID. No entry for her = the old decorator path, unchanged. #}
+{% set _ds = read_json("VRTE_DDZaZ/prompt_state", random * 10000 + random * 100 + random) %}
+{% set _de = 0 %}
+{% if isObject(_ds) and existsIn(_ds, "npcs") %}{% for _e in _ds.npcs %}{% if _e.uuid == npc.UUID %}{% set _de = _e %}{% endif %}{% endfor %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "all") %}{% set _vd_all = _de.all %}{% else %}{% set _vd_all = vrtedd_all_bound(npc.UUID) %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "arms") %}{% set _vd_arms = _de.arms %}{% else %}{% set _vd_arms = vrtedd_arms_bound(npc.UUID) %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "legs") %}{% set _vd_legs = _de.legs %}{% else %}{% set _vd_legs = vrtedd_legs_bound(npc.UUID) %}{% endif %}
+{#
+  ⛔⛔ THE COLD-CACHE FALLBACK (2026-09-08, measured in VR and it is the
+  reason a bound NPC sometimes read as free).
+
+  SkyrimNet answers a Papyrus decorator from a per-entity cache. On a MISS it
+  returns EMPTY and logs a warning - it does not retry and it does not error.
+  Measured in one session: 385 misses, and they happen INSIDE the real prompt
+  render, not only in the action-warmup pass. The log shows three in a row
+  while this very template was rendering:
+      Rendering sub-template: .../0910_vrtedd_restraint
+      Papyrus decorator 'vrtedd_all_bound'  cache miss ... returning empty
+      Papyrus decorator 'vrtedd_arms_bound' cache miss ... returning empty
+      Papyrus decorator 'vrtedd_legs_bound' cache miss ... returning empty
+  Every gate below was decorator-only, so all three went false and the whole
+  block vanished. The NPC was described as completely unrestrained while
+  wearing an armbinder.
+
+  ★ THE FIX IS THE ONE 0795 HAS HAD SINCE AUGUST: gate on a NATIVE as well.
+  `worn_has_keyword` returns a real boolean straight from the record and cannot
+  be `{}`, so the block still fires on a miss - it just loses the device's NAME
+  and falls back to a plain noun. A generic sentence is enormously better than
+  no sentence: the restriction is the load-bearing part, the name is decoration.
+
+  ⚠ The keyword lists here are only a FALLBACK. The decorators remain the
+  real source (they also fold in the user's INI and spells, which no keyword
+  test can see). These lists exist only to keep the block alive on a miss.
+#}
+{% set _vd_all_kw = worn_has_keyword(npc.UUID, "zad_DeviousStraitJacket") or worn_has_keyword(npc.UUID, "zad_DeviousPetSuit") %}
+{% set _vd_arms_kw = worn_has_keyword(npc.UUID, "zad_DeviousArmbinder") or worn_has_keyword(npc.UUID, "zad_DeviousArmbinderElbow") or worn_has_keyword(npc.UUID, "zad_DeviousYoke") or worn_has_keyword(npc.UUID, "zad_DeviousElbowTie") or worn_has_keyword(npc.UUID, "zad_DeviousHeavyBondage") or worn_has_keyword(npc.UUID, "zad_DeviousBondageMittens") or worn_has_keyword(npc.UUID, "zad_DeviousCuffsFront") %}
+{% set _vd_legs_kw = worn_has_keyword(npc.UUID, "zad_DeviousHobbleSkirt") or worn_has_keyword(npc.UUID, "zad_DeviousHobbleSkirtRelaxed") or worn_has_keyword(npc.UUID, "zad_DeviousAnkleShackles") %}
+{% set _vd_all_on = ((isString(_vd_all) and _vd_all != "") or _vd_all_kw) %}
+{% set _vd_arms_on = ((isString(_vd_arms) and _vd_arms != "" or _vd_arms_kw) and not _vd_all_on) %}
+{% set _vd_legs_on = ((isString(_vd_legs) and _vd_legs != "" or _vd_legs_kw) and not _vd_all_on) %}
+{#  the NAME degrades to a noun when the decorator missed  #}
+{% if not (isString(_vd_all) and _vd_all != "") %}{% set _vd_all = "full-body restraint" %}{% endif %}
+{% if not (isString(_vd_arms) and _vd_arms != "") %}{% set _vd_arms = "arm restraints" %}{% endif %}
+{% if not (isString(_vd_legs) and _vd_legs != "") %}{% set _vd_legs = "leg restraints" %}{% endif %}
+{% if _vd_all_on or _vd_arms_on or _vd_legs_on %}
+{% set _p = "he" %}{% set _pp = "his" %}{% set _po = "him" %}
+{% if decnpc(npc.UUID).isFemale %}{% set _p = "she" %}{% set _pp = "her" %}{% set _po = "her" %}{% endif %}
+**PHYSICALLY RESTRAINED.** {{ decnpc(npc.UUID).name }} is wearing something that holds part of {{ _pp }} body where it wants it. These are the facts of what {{ _pp }} body does right now:
+{% if _vd_all_on %}
+- {{ _p | capitalize }} is held in {{ _vd_all }}, which takes {{ _pp }} whole body. {{ _pp | capitalize }} hands are held out of use, {{ _pp }} pace is reduced to a shuffle, and every physical task {{ _p }} wants done passes to someone else's hands. {{ _p | capitalize }} directs; others act.
+{% endif %}
+{% if _vd_arms_on %}
+- {{ _pp | capitalize }} arms are bound in {{ _vd_arms }}, which holds them where it has put them. Reaching, taking, holding, handing over, working a latch or a buckle, using a weapon - each of those needs hands the restraint has already claimed, and it keeps them for as long as it is on.
+{% endif %}
+{% if _vd_legs_on %}
+- {{ _pp | capitalize }} stride is cut short by {{ _vd_legs }}. {{ _p | capitalize }} moves at a slow shuffle and stays at that pace whatever the situation asks of {{ _po }}; anyone walking normally draws ahead, and stairs and uneven ground each take {{ _pp }} full attention.
+{% endif %}
+It stays exactly as it was put on. It comes off only when someone else takes it off - the worn-device line above says what that takes (a key, tools, or undoing the knots) - and it holds just as firmly after hours as it did in the first minute — time is on the device's side.
+{% if render_mode != "thoughts" %}
+
+**This overrides any action you might otherwise choose.** Every `ACTION:` line you output, and everything you narrate {{ _po }} doing, must be something {{ _pp }} body can carry out WHILE the restraint above holds. Handing something over, taking or giving an item, drawing or sheathing a weapon, fighting, opening or unlocking anything, keeping pace on foot - the restraint decides which of these are still available, and it decides against most of them.
+
+When {{ _p }} reaches for something the restraint holds {{ _po }} back from, write the reach AND write the device stopping it. The attempt is the scene; the device always wins it.
+{% endif %}
+
+Nothing above says how {{ _p }} feels about being restrained, or how {{ _p }} came to be. That is yours to play.
+{% endif %}
+{% endif %}

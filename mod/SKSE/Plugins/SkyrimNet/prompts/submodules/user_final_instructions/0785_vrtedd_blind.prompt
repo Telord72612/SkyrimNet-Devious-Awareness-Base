@@ -1,0 +1,90 @@
+{#
+  ★★ THE STANDING RULE FOR EVERY BLOCK IN THIS FOLDER (user, 2026-09-08):
+  ENFORCE, DO NOT NEGATE.
+
+      wrong: "you cannot remove this device if you don't have the key"
+      right: "this device can only be removed with the proper key and will
+              stay on otherwise"
+
+  The user's reasoning, and it matches what 0792 recorded back in August ("LLM
+  do really bad with negative, make them focus on what not to do and end up
+  doing it"): a prohibition still puts the forbidden thing in the model's
+  context, described in detail, and a model that has just read a vivid
+  description of clean dialogue is more likely to write clean dialogue.
+
+  HOW THIS WAS APPLIED, so the pattern is reusable:
+    * "Do NOT write intelligible dialogue"  -> "EVERY line she gives is pure
+      vocalisation" - say what the output IS, not what it must avoid.
+    * "Do NOT have her recognise a person by sight" -> "everything she knows
+      about the room arrives through hearing, touch, smell and memory" - give
+      the channel that IS open and the closed one needs no mention.
+    * "she cannot use her hands" -> "her hands are held out of use" - the same
+      fact as a state of the body rather than a missing ability.
+    * "It does not come off on its own" -> "It stays exactly as it was put on
+      ... time is on the device's side."
+
+  ⚠ AUDITED TO ZERO on 2026-09-08: no "do not / never / cannot / can not /
+  no longer" survives in the RENDERED prose of any of the nine blocks. Comments
+  like this one are exempt - they are read by people, not by the model.
+  Re-run the check before shipping a prompt edit; it is trivial to regress.
+#}
+{#
+  VRTE DD/ZaZ AddOn - sight blocked.                        (2026-08-24)
+
+  User: "we should add blindness too, as some gears in DD covers the eye."
+
+  Its own file rather than a line inside 0910, because blindness is not a
+  restraint on ACTION - it is a restraint on INFORMATION, and it needs the
+  opposite kind of instruction. A bound NPC must not DO things; a blind one must
+  not KNOW things. Left inside the restraint block it would have been one bullet
+  among several and the LLM would have gone on describing what she "sees".
+
+  vrtedd_blind(uuid) returns the covering's name or "". Behind it the DLL folds
+  DD blindfolds and hoods, ZaZ blindfolds, the user's own gear from
+  SKSE/Plugins/VRTE_DDZaZ_Restraints.ini, and blindness SPELLS.
+
+  ⚠ Guarded with isString, never `!= ""`: an empty Papyrus decorator result
+  arrives as an empty JSON object `{}`, and `{} != ""` is TRUE. See 0910.
+
+  ⚠ Renders in EVERY mode, thoughts included. A blindfolded NPC's inner
+  monologue is exactly where "I can hear someone moving, I don't know who"
+  belongs - suppressing it in thoughts mode would make her think in sights she
+  cannot have.
+
+  ⚠ Neutral. It says what she can and cannot perceive, never how that feels.
+#}
+{% if exists("npc") and existsIn(npc, "UUID") %}
+{# ★ 1.3.0 (2026-09-14): STATE FILE FIRST, decorator as the fallback. VRTE_DDZaZ.dll writes
+   Data/SKSE/Plugins/VRTE_DDZaZ/prompt_state.json the instant a device goes on or off, a name
+   arrives, a restraint is released; read_json re-reads on the file's mtime and the random second
+   argument defeats SkyrimNet's 55 s callback cache (VRTouchEvents' recipe, VR-verified, report 45).
+   Matched on the SkyrimNet entity UUID. No entry for her = the old decorator path, unchanged. #}
+{% set _ds = read_json("VRTE_DDZaZ/prompt_state", random * 10000 + random * 100 + random) %}
+{% set _de = 0 %}
+{% if isObject(_ds) and existsIn(_ds, "npcs") %}{% for _e in _ds.npcs %}{% if _e.uuid == npc.UUID %}{% set _de = _e %}{% endif %}{% endfor %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "blind") %}{% set _vd_blind = _de.blind %}{% else %}{% set _vd_blind = vrtedd_blind(npc.UUID) %}{% endif %}
+{#
+  ⛔ COLD-CACHE FALLBACK (2026-09-08) - see the long note in 0780. A Papyrus
+  decorator that misses its cache returns EMPTY and only logs a warning, so a
+  decorator-only gate silently deletes this whole block and a blindfolded NPC
+  is described as sighted. `worn_has_keyword` is native, returns a real boolean
+  and cannot be `{}`, so it keeps the block alive; only the NAME degrades.
+  ★ zad_DeviousBlindfold is the right native here: it is exactly the keyword
+  the blind category is built on, and it needs no corroboration.
+#}
+{% set _vd_blind_kw = worn_has_keyword(npc.UUID, "zad_DeviousBlindfold") or worn_has_keyword(npc.UUID, "zbfWornBlindfold") %}
+{% if (isString(_vd_blind) and _vd_blind != "") or _vd_blind_kw %}
+{% if not (isString(_vd_blind) and _vd_blind != "") %}{% set _vd_blind = "a blindfold" %}{% endif %}
+{% set _p = "he" %}{% set _pp = "his" %}{% set _po = "him" %}
+{% if decnpc(npc.UUID).isFemale %}{% set _p = "she" %}{% set _pp = "her" %}{% set _po = "her" %}{% endif %}
+**SIGHT IS BLOCKED — {{ decnpc(npc.UUID).name }} IS IN THE DARK.** {{ _pp | capitalize }} eyes are covered by {{ _vd_blind }}, and it is complete: the room, who is present, what is held in front of {{ _po }}, whether anyone is still there at all - every one of those is now something {{ _p }} has to work out by ear or be told.
+
+Everything {{ _p }} knows about the room now arrives through hearing, touch, smell and memory. {{ _p | capitalize }} places people by voice or by step, finds objects by feel or by where they last were, and learns what is happening by being told. Every person {{ _p }} names, {{ _p }} named from a sound.
+
+Whatever {{ _p }} believes about {{ _pp }} surroundings is guesswork built from sound, touch and the memory of where things were before {{ _pp }} eyes were covered — and {{ _p }} may be wrong about it.
+
+In a fight, a bow, a crossbow and any spell that must be aimed leave {{ _pp }} hands the moment the covering goes on - the game itself takes them. What {{ _p }} does have, {{ _p }} swings at whatever is CLOSEST, ally or enemy alike, because to {{ _po }} they sound the same.
+
+It stays exactly as it was put on. It comes off only when someone else opens it with the proper key, and it holds just as firmly after hours as it did in the first minute — time is on the device's side.
+{% endif %}
+{% endif %}

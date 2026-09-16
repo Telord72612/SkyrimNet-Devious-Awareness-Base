@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fomod>
+    <Name>SkyrimNet Devious Awareness Base 1.0</Name>
+    <Author>mad72</Author>
+    <Version>1.0</Version>
+    <Description>Tells the SkyrimNet AI what restraint gear an NPC is actually wearing, what it is doing to her, and what anyone else can see of it. Devious Devices, ZaZ Animation Pack and Diary of Mine are recognised out of the box.
+
+WHAT IT ADDS. Put a gag on an NPC and talk to her: without this she answers in fluent sentences, because nothing in Skyrim ever told the AI her mouth was strapped shut. This tells it - gagged, blindfolded, deafened, bound - and tells it again when the thing comes off, which matters as much, because the AI has several constrained replies sitting in its memory and goes on copying them otherwise.
+
+BEYOND STATE. Every worn device is described by what it IS and what it DOES over time: type, material, how long it has been on, and the strain that builds from wearing it - pain, chafing, damp, arousal - each on its own scale. Effects fire as events: vibration, shocks, climax, spellfire, stumbling.
+
+TOLD VERSUS ENFORCED. Almost everything is TOLD - the AI roleplays it. Exactly two things are ENFORCED by the game, because no dialogue choice can stop an AI combat package: a gagged NPC cannot cast spells, and a blindfolded NPC cannot use a bow, a crossbow, a staff or an aimed spell.
+
+AND WHAT OTHERS CAN SEE. A plug under armour is not visible to the person she is talking to. Devices resolve into four layers - internal, under, mid, outer - and onlookers are told only what is actually on the outside, while she herself knows everything.
+
+ALL THREE RUNTIMES. One DLL, built with CommonLibSSE-NG and address-library independent: the same file loads on SE, AE and VR.
+
+SHE REACTS, AND SHE IS CUT OFF. A climax, a shock and a blindfolded stumble are spoken reactions - she says something about what just happened to her body. And a gag or a hood going on the NPC who is CURRENTLY TALKING stops her line mid-word, instead of letting her finish a sentence through a ball gag. Both only ever cut the speaker herself; nobody else's line is touched.
+
+WHAT SHE IS WEARING REACHES THE AI AT ONCE. The worn list, her restraint state and what an onlooker can see are written to a live state file the prompts read directly, so putting a device on or pulling one off shows up in her very next reply instead of several replies later.
+
+HONESTLY SO. The mod is built and verified against the code, and its core has run in VR - the climax animation, the shocks, the device going off again at full arousal, blindfolded stumbles, the gag interrupt and the spoken reactions all fired in a real playthrough. Not every path has: the SE/AE build has never been launched on SE or AE, and some of the newest wiring is one session old. Please include SKSE\VRTE_DDZaZ.log with any report, and say which runtime.
+
+IF YOU ALSO USE VRTOUCHEVENTS: this version needs VRTouchEvents 3.3 (built 2026-09-13) or later. Update both together - see the ReadMe's VERSION PAIRING. It has NEVER been launched on SE or AE: the runtime independence is established by static analysis, not by a boot. Please include SKSE\VRTE_DDZaZ.log (in Documents\My Games\your Skyrim folder) with any report, and say which runtime.
+
+UPGRADING FROM 1.1: choose REPLACE, not merge. The nine device prompt files were renamed, and a merge leaves the old ones beside the new ones, so every device block renders twice.
+
+NO MESHES, NO TEXTURES. Nothing overrides another mod's assets. One ESL-flagged ESP is included and it is required: tick DD SN Database.esp (the file keeps its old name so existing saves and patches are unaffected).
+
+REQUIREMENTS: SKSE, Address Library for SKSE Plugins (VR: VR Address Library), SkyrimNet, Devious Devices (Assets, Integration, Expansion) and PapyrusUtil. DD is required even if your gear comes from elsewhere - the mod uses DD's own vibration, shock and stumble code. DD SN AddOn is a separate mod with its own installer.</Description>
+    <Website></Website>
+    <Groups>
+        <element>SKSE Plugins</element>
+        <element>Gameplay Effects and Changes</element>
+    </Groups>
+</fomod>

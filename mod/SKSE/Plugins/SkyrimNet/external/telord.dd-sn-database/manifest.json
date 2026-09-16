@@ -1,0 +1,24 @@
+{
+  "id": "telord.dd-sn-database",
+  "type": "bundle",
+  "title": "SkyrimNet Devious Awareness Base",
+  "tagline": "Devious Devices, ZaZ and Diary of Mine awareness for SkyrimNet NPCs.",
+  "description": "Tells the SkyrimNet AI what restraint gear an NPC is actually wearing, what it is doing to her, and what anyone else can see of it.\n\nCovers Devious Devices, ZaZ Animation Pack and Diary of Mine: the worn list with wear time and strain, gag / blindfold / deafness / restraint state, the release blocks, what a device left behind after it came off, and an onlooker's layer-filtered view.\n\nNeeds the SkyrimNet Devious Awareness Base mod itself - these prompts read the live state file its plugin writes (and fall back to the decorators it registers).",
+  "author": "Telord",
+  "tags": [
+    "devious-devices",
+    "awareness",
+    "npc-state"
+  ],
+  "nsfw": true,
+  "icon": "sparkles",
+  "version": "1.0.0",
+  "min_skyrimnet_version": "0.25.0",
+  "mods": [
+    {
+      "name": "SkyrimNet Devious Awareness Base",
+      "file": "DD SN Database.esp",
+      "required": true
+    }
+  ]
+}

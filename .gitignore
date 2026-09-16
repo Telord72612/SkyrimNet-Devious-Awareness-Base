@@ -1,0 +1,23 @@
+# build output
+build/
+out/
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.map
+
+# compiled artefacts - these ship on the release page, not in the tree
+*.dll
+*.pex
+*.esp
+*.esm
+*.esl
+*.zip
+
+# local tooling
+.vs/
+.vscode/
+CMakeUserPresets.json
+vcpkg_installed/

@@ -1,0 +1,84 @@
+{#
+  ★★ THE STANDING RULE FOR EVERY BLOCK IN THIS FOLDER (user, 2026-09-08):
+  ENFORCE, DO NOT NEGATE.
+
+      wrong: "you cannot remove this device if you don't have the key"
+      right: "this device can only be removed with the proper key and will
+              stay on otherwise"
+
+  The user's reasoning, and it matches what 0792 recorded back in August ("LLM
+  do really bad with negative, make them focus on what not to do and end up
+  doing it"): a prohibition still puts the forbidden thing in the model's
+  context, described in detail, and a model that has just read a vivid
+  description of clean dialogue is more likely to write clean dialogue.
+
+  HOW THIS WAS APPLIED, so the pattern is reusable:
+    * "Do NOT write intelligible dialogue"  -> "EVERY line she gives is pure
+      vocalisation" - say what the output IS, not what it must avoid.
+    * "Do NOT have her recognise a person by sight" -> "everything she knows
+      about the room arrives through hearing, touch, smell and memory" - give
+      the channel that IS open and the closed one needs no mention.
+    * "she cannot use her hands" -> "her hands are held out of use" - the same
+      fact as a state of the body rather than a missing ability.
+    * "It does not come off on its own" -> "It stays exactly as it was put on
+      ... time is on the device's side."
+
+  ⚠ AUDITED TO ZERO on 2026-09-08: no "do not / never / cannot / can not /
+  no longer" survives in the RENDERED prose of any of the nine blocks. Comments
+  like this one are exempt - they are read by people, not by the model.
+  Re-run the check before shipping a prompt edit; it is trivial to regress.
+#}
+{#
+  VRTE DD/ZaZ AddOn - hearing came BACK.                     (2026-08-27)
+
+  The sibling of 0925, and it exists for the identical reason: withdrawing the
+  constraint does not delete the turns the LLM already wrote under it. After
+  three or four exchanges of "I can't make that out", the model has its own
+  examples to imitate and goes on mishearing after the hood is off. So the
+  release needs to be stated, loudly, for as long as those turns are still in
+  the context window.
+
+  ⚠⚠ WRITTEN IN THE POSITIVE (user, 2026-08-24): "LLM do really bad with
+  negative, make them focus on what not to do and end up doing it." This block
+  never says "stop asking people to repeat themselves" - it says what she DOES:
+  she hears, she follows, she answers what was actually said.
+
+  ★ AND THIS ONE MATTERS MORE THAN THE OTHER FIVE RECOVERIES, because 0916 asked
+  for something genuinely unnatural: it told the model to look at a sentence and
+  answer as though it had not read it. That is the hardest instruction in this
+  mod to comply with, so it is also the one most likely to persist by habit once
+  it no longer applies. Restoring it needs to be unambiguous.
+
+  vrtedd_undeafened(uuid) returns "3"/"2"/"1" for the next three renders after
+  hearing comes back, then "". It returns "" while the covering is STILL on,
+  which makes this and 0916 mutually exclusive with no coordination between
+  them, and putting the hood back on cancels the countdown on the next render.
+
+  ⚠ Guarded with isString, never `!= ""` - see 0910.
+  ⚠ Renders in every mode: her inner monologue needs to know it can hear again
+    just as much as her dialogue does.
+#}
+{% if exists("npc") and existsIn(npc, "UUID") %}
+{# ★ 1.3.0 (2026-09-14): STATE FILE FIRST, decorator as the fallback. VRTE_DDZaZ.dll writes
+   Data/SKSE/Plugins/VRTE_DDZaZ/prompt_state.json the instant a device goes on or off, a name
+   arrives, a restraint is released; read_json re-reads on the file's mtime and the random second
+   argument defeats SkyrimNet's 55 s callback cache (VRTouchEvents' recipe, VR-verified, report 45).
+   Matched on the SkyrimNet entity UUID. No entry for her = the old decorator path, unchanged. #}
+{% set _ds = read_json("VRTE_DDZaZ/prompt_state", random * 10000 + random * 100 + random) %}
+{% set _de = 0 %}
+{% if isObject(_ds) and existsIn(_ds, "npcs") %}{% for _e in _ds.npcs %}{% if _e.uuid == npc.UUID %}{% set _de = _e %}{% endif %}{% endfor %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "undeaf") %}{% set _vd_und = _de.undeaf %}{% else %}{% set _vd_und = vrtedd_undeafened(npc.UUID) %}{% endif %}
+{% if isString(_vd_und) and _vd_und != "" %}
+{% set _p = "he" %}{% set _pp = "his" %}{% set _po = "him" %}
+{% if decnpc(npc.UUID).isFemale %}{% set _p = "she" %}{% set _pp = "her" %}{% set _po = "her" %}{% endif %}
+**HEARING IS BACK — {{ decnpc(npc.UUID).name }} CAN HEAR NORMALLY AGAIN.** The covering has just come off {{ _pp }} ears.
+
+**Write {{ _po }} as someone who hears every word.** {{ _p | capitalize }} catches what is said the first time, follows a normal conversation at a normal volume, recognises a voice across a room, and answers what was actually asked. Speech reaching {{ _po }} now is simply speech — read it as written and respond to its content.
+
+What {{ _p }} could only judge from tone and volume a moment ago is plain now. {{ _p | capitalize }} may find that what was actually being said was not what {{ _p }} took it for, and may say so.
+
+Sounds {{ _p }} had stopped noticing come back with it — the room, the fire, footsteps, people talking nearby. It may be briefly loud after the quiet.
+
+How {{ _p }} feels about any of it is yours to play.
+{% endif %}
+{% endif %}

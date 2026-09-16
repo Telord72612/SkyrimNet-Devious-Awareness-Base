@@ -1,0 +1,136 @@
+<?xml version='1.0' encoding='utf-8'?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+
+    <moduleName>SkyrimNet Devious Awareness Base 1.0</moduleName>
+
+    <requiredInstallFiles>
+        <folder source="Base" destination="" />
+    </requiredInstallFiles>
+
+    <installSteps order="Explicit">
+        <installStep name="Awareness">
+            <optionalFileGroups order="Explicit">
+
+                <group name="Sensory state (requires SkyrimNet)" type="SelectAny">
+                    <plugins order="Explicit">
+
+                        <plugin name="Gag awareness">
+                            <description>Tells SkyrimNet that a gagged NPC cannot speak.
+
+Without this she answers you in fluent sentences - nothing in Skyrim ever told the AI her mouth was strapped shut, so any muffling you have seen was the AI improvising.
+
+With it: no intelligible dialogue while the gag is on. She answers in muffled sound, breathing and body language, and she still THINKS normally - she understands you perfectly and cannot reply. The gag block renders last of all the device blocks, so it is the final instruction before the moment she is reacting to.
+
+A ring gag is handled separately from a stuffed one: with the mouth held open she can still make vowels and is described as such, rather than silenced.
+
+AND WHEN IT COMES OFF: for her next three replies she is told, in her own prompt, that she can speak again. That half matters as much as the first - taking the gag off is not enough on its own, because the AI has several muffled replies sitting in its memory and goes right on copying them.
+
+THE SPELL LOCK LIVES IN THE BASE INSTALL. A gagged NPC cannot cast spells whether or not this option is ticked; this option is only what the AI is told.
+
+Installs 0795_vrtedd_gag.prompt and 0791_vrtedd_ungagged.prompt.</description>
+                            <image path="" />
+                            <files>
+                                <folder source="Gag Awareness" destination="" />
+                            </files>
+                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Blindness awareness">
+                            <description>Tells SkyrimNet that a blindfolded or hooded NPC cannot see.
+
+She stops describing what she looks at, stops recognising people by sight, and reacts to sound and touch instead. A hood with eye slits does NOT count - the mod reads that distinction from the device itself rather than from its name.
+
+AND WHEN IT COMES OFF: three replies telling her sight is back, for the same reason as the gag.
+
+THE WEAPON LOCK LIVES IN THE BASE INSTALL. A blindfolded NPC loses bows, crossbows, staves and aimed spells, stumbles, and swings at the wrong target whether or not this option is ticked; this option is only what the AI is told.
+
+Installs 0785_vrtedd_blind.prompt and 0792_vrtedd_unblinded.prompt.</description>
+                            <image path="" />
+                            <files>
+                                <folder source="Blindness Awareness" destination="" />
+                            </files>
+                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Deafness awareness">
+                            <description>Tells SkyrimNet that a hooded NPC's hearing is dulled.
+
+This one is unlike the others and the prompt is written accordingly. Every other state removes an ABILITY, and the AI complies by not doing something. Deafness removes an INPUT that the AI is still being handed - it can read your words perfectly - so the prompt REFRAMES: the words arrive as sound through a hood, and she answers the tone and the volume rather than the sentence.
+
+It is honest about the threshold, too: her own name said loudly or close, a shout, a scream or a blade being drawn get through as words; ordinary conversation arrives as sound only. And it says DULLED, not deaf, because that is what the data supports - a hood is the only ear-covering device in DD, and there is no hearing keyword anywhere in DD or ZaZ.
+
+FIXED IN 1.2: a plain blindfold no longer counts. Some DD blindfolds carry the same keyword as a hood; the mod now also checks the mesh, so a blindfold blinds and leaves the ears open.
+
+Installs 0786_vrtedd_deaf.prompt and 0793_vrtedd_undeafened.prompt.</description>
+                            <image path="" />
+                            <files>
+                                <folder source="Deafness Awareness" destination="" />
+                            </files>
+                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Restraint awareness">
+                            <description>Tells SkyrimNet that a bound NPC cannot use her hands, or cannot walk properly.
+
+Arms bound behind her back, wrists cuffed in front, a yoke, a straitjacket, mittens that seal the fingers, a hobble skirt or ankle shackles that cut her stride - each is described by what it actually prevents, not by a generic "she is tied up".
+
+AND WHEN IT COMES OFF: three replies telling her she can move freely again.
+
+Installs 0780_vrtedd_restraint.prompt and 0794_vrtedd_unbound.prompt.</description>
+                            <image path="" />
+                            <files>
+                                <folder source="Restraint Awareness" destination="" />
+                            </files>
+                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                        </plugin>
+
+                    </plugins>
+                </group>
+
+                <group name="What other people can see" type="SelectAny">
+                    <plugins order="Explicit">
+
+                        <plugin name="Observer view (recommended)">
+                            <description>Describes an NPC's gear to the person she is TALKING TO, filtered by what is actually visible.
+
+The wearer always knows everything she has on - that is the base install. This adds the other half: an onlooker is told only what shows. Devices resolve into four layers - internal (plugs, never visible; piercings only while that part of her is bare), under (visible only while that part of her is bare), mid and outer (always visible) - so a plug beneath armour is not described to her conversation partner, while a yoke plainly is.
+
+An onlooker is told what can be SEEN, in a few words - "hooked through the nipples", "locked around the neck" - and never what she feels or how long she has worn it.
+
+One deliberate exception: a pony-tail plug is internal, but the tail hangs in plain sight, so onlookers are told about the tail and never about the plug.
+
+Purely additive - it adds a block, it changes nothing that already renders.
+
+Installs 0950_vrtedd_visible_devices.prompt.</description>
+                            <image path="" />
+                            <files>
+                                <folder source="Observer View" destination="" />
+                            </files>
+                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Equipment-list filter (BETA - replaces a SkyrimNet file)">
+                            <description>Stops SkyrimNet's own equipment list from naming restraints, so the Observer View above is the only thing that describes them.
+
+WHY YOU MIGHT WANT IT. SkyrimNet lists every worn item to whoever an NPC is talking to, and it ignores clothing entirely - so a plug under full plate is announced to her conversation partner regardless. This filter removes framework devices from that list, in both the wearer's own bio and the dialogue target's, leaving the layer-aware description to do the job properly.
+
+* READ THIS BEFORE ENABLING. This option REPLACES a SkyrimNet file: submodules/character_bio/0410_equipment.prompt. If another mod ships its own copy of that file, whichever mod wins your load order wins the file. This copy is built on top of SeverActions' version and preserves their additions - but if SkyrimNet or SeverActions update theirs, this one will be out of date until it is re-merged. It also rewrites their "if an item is not listed above, you are NOT wearing it" line to say CLOTHING, since with restraints filtered out the original wording would teach an NPC to deny her own devices.
+
+OFF by default on purpose. Everything else in this installer only adds files.
+
+Installs 0410_equipment.prompt.</description>
+                            <image path="" />
+                            <files>
+                                <folder source="Equipment List Filter" destination="" />
+                            </files>
+                            <typeDescriptor><type name="Optional" /></typeDescriptor>
+                        </plugin>
+
+                    </plugins>
+                </group>
+
+            </optionalFileGroups>
+        </installStep>
+    </installSteps>
+
+</config>

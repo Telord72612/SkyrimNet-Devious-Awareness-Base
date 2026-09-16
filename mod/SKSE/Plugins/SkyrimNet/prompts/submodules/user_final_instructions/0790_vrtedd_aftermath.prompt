@@ -1,0 +1,56 @@
+{#
+  ★★ THE STANDING RULE FOR EVERY BLOCK IN THIS FOLDER (user, 2026-09-08):
+  ENFORCE, DO NOT NEGATE. Say what IS true of the body - a prohibition still puts
+  the forbidden thing in the model's context. 0791 carries the full note and the
+  worked examples. Comments are exempt; the RENDERED prose below is audited.
+#}
+{#
+  VRTE DD/ZaZ Database - WHAT A RESTRAINT LEFT BEHIND.              (2026-09-10)
+
+  THE USER: "keep the same thing, a state prompt in the LLM context window, except
+  change it for how they feel after release according to how far the effect was.
+  And only keep it for a couple of prompt, with subsequent one explaining the
+  pain/ache is diminishing."
+
+  This replaces the old ddz_aftermath short-lived EVENT. A device coming off is the
+  AddOn's to narrate; what that device did to the body is awareness, so it lives
+  here as a block in her own prompt while the body recovers.
+
+  vrtedd_aftermath(uuid) returns, for the next THREE prompts after a device comes
+  off - the same clock and 5-second floor as the ungagged countdown:
+      1st   the phase line: how far the strain had got decides the wording
+      2nd   the same line, easing        (phase 5: the deficit that follows it)
+      3rd   what little remains, fading
+  and then "". Each strain tier (arms, hands, legs, jaw, skin...) runs its own
+  countdown, so an armbinder and a gag coming off together read as two sentences.
+  It also runs out by game time (VRTE_DDZaZ_Scales.ini [aftermath]) if she is not
+  part of any conversation in the meantime - she recovered unseen.
+
+  An onlooker gets the outward signs, not this: vrtedd_aftermath_visible in 0950.
+
+  Numbered 0790: after the state blocks (0780-0786), before the recoveries
+  (0791-0794) and the gag (0795, always last), all before SkyrimNet's 0800.
+
+  ⚠ Guarded with isString, never `!= ""` - an empty Papyrus decorator result
+  arrives as an empty JSON object `{}`, and `{} != ""` is TRUE.
+#}
+{% if exists("npc") and existsIn(npc, "UUID") %}
+{# ★ 1.3.0 (2026-09-14): STATE FILE FIRST, decorator as the fallback. VRTE_DDZaZ.dll writes
+   Data/SKSE/Plugins/VRTE_DDZaZ/prompt_state.json the instant a device goes on or off, a name
+   arrives, a restraint is released; read_json re-reads on the file's mtime and the random second
+   argument defeats SkyrimNet's 55 s callback cache (VRTouchEvents' recipe, VR-verified, report 45).
+   Matched on the SkyrimNet entity UUID. No entry for her = the old decorator path, unchanged. #}
+{% set _ds = read_json("VRTE_DDZaZ/prompt_state", random * 10000 + random * 100 + random) %}
+{% set _de = 0 %}
+{% if isObject(_ds) and existsIn(_ds, "npcs") %}{% for _e in _ds.npcs %}{% if _e.uuid == npc.UUID %}{% set _de = _e %}{% endif %}{% endfor %}{% endif %}
+{% if isObject(_de) and existsIn(_de, "after") %}{% set _vd_aft = _de.after %}{% else %}{% set _vd_aft = vrtedd_aftermath(npc.UUID) %}{% endif %}
+{% if isString(_vd_aft) and _vd_aft != "" %}
+{% set _p = "he" %}{% set _pp = "his" %}
+{% if decnpc(npc.UUID).isFemale %}{% set _p = "she" %}{% set _pp = "her" %}{% endif %}
+**WHAT THE RESTRAINT LEFT BEHIND — {{ decnpc(npc.UUID).name }}.** It is off now, and {{ _pp }} body is still coming back from it:
+
+{{ _vd_aft }}
+
+This is how {{ _pp }} body feels at this moment. It shows in how {{ _p }} moves, sits and carries {{ _pp }} weight, and it reaches {{ _pp }} words where it would naturally come up. How {{ _p }} feels about it is yours to play.
+{% endif %}
+{% endif %}
