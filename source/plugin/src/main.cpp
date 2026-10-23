@@ -24,128 +24,122 @@ namespace logger = SKSE::log;
 //   DD    — driven through the engine (ActorEquipManager), never patched
 // =============================================================================
 
-SKSEPluginInfo(
-    // ⛔ BUMPED 2026-09-03. This said {1,0,0} while the package shipped as
-    // V1.1-beta, and the DLL carries NO VS_FIXEDFILEINFO - so the banner below
-    // is the ONLY version a user or the author can see. Every beta report cited
-    // the wrong build, and "is the new DLL actually loaded?" was unanswerable
-    // on a mod whose entire purpose is collecting SE/AE logs.
-    // 1.2.0 on 2026-09-10: the beta with the removal gate, key capture and the
-    // gag/blindfold enforcement. The banner says "Database" because this DLL
-    // ships in DD SN Database - the AddOn is a separate mod with no DLL.
-    // 1.2.2 on 2026-09-10: device narration moved to the AddOn, the after-state became a
-    // 3-prompt block, and the gate is handed to PPB only with the AddOn loaded.
-    // 1.2.1 on 2026-09-10: the key-test fixes - the undress hold, keyed approvals for the
-    // AddOn key rule, the slot gate, mannequins excluded, refusals logged.
-    // 1.2.3 on 2026-09-13: the observer view, boot grades, hood layers + the Extreme Hood pair,
-    // pony gag + Shibari, DoM restraints; masturbation relay gone (VRTouchEvents'); the three
-    // dead gesture renames dropped; the hand-equip device detail (DeviceFitted) and hand-moved
-    // unclassed plugs left to VRTouchEvents. ⚠ Pairs with VRTouchEvents built 2026-09-13 or later.
-    // 1.2.4 on 2026-09-13: the integration review's fix list - climaxes credited only while a
-    // device runs (D1), nothing done to an unconscious NPC (D3), the scene gate on every effect
-    // and device line + a 15 s post-scene grace (D2/D5), names filed by rendered FormID + the
-    // pair map so the EQUIP gate finally reads a name (D4/D9/D10), quest flags on the inventory
-    // half (D7), the cast-vibration stop edge quiet (D12), residuals cleared on revert (D6), the
-    // pacing event on the hand-plug route (D16), leash collars refused (F2), shock edge with its
-    // sites (D14). ⚠ Ships with the matching VRTE_DDZaZ_Native.pex (NoteDeviceRecord).
-    // 1.2.5 on 2026-09-13 (the first VR session on 1.2.4): DD's off->on re-asserts no longer
-    // narrate as real removals/equips (deferred removals, echo for every class, already-worn =
-    // no change); the shock-marker effect no longer reads as a jolt; the equip gate reads names
-    // from the shipped pair table (VRTE_DDZaZ_Pairs.ini); a woken KO gets her bound-arm pose back.
-    // 1.2.6 on 2026-09-13: the climax POSE (DD's standing clip over its floor clip for climaxes
-    // 1-3, the edged/kneel clip from the 4th, arousal to 50 after), the 100 lane (a vibrating device
-    // at full arousal goes off by itself), and the capitalised-pronoun strings gone from the
-    // Controller's lines (Papyrus's case-insensitive string cache handed back "she").
-    // 1.2.7 on 2026-09-14 (VRTouchEvents' request "PlugRefitEcho" part A): the WHOLE removal is held,
-    // not just its line - DD's off->on re-fit no longer restarts a device's wear clock, writes a false
-    // after-state, or erases her climax count / 100-lane cooldown; the churn echo is retired (it could
-    // only swallow a real removal now); held removals are cleared at a load and never saved.
-    // 1.2.8 on 2026-09-14 (the user: "cell load and gears equipping don't affect our state and
-    // effect"): a device off her body but still in her inventory (a DD strip, outfit re-apply,
-    // cell-load re-fit) or off during a scene is HELD, not removed; her last device coming off keeps
-    // her climax count, cooldowns and arousal reading; the TIRED KNEEL (bleedout 3 s) when an arm
-    // binder / yoke / leg restraint / rope bind at phase 4+ comes off. ⚠ Pairs with the matching
-    // VRTE_DDZaZ_Equip.pex (TiredKneel).
-    // 1.2.9 on 2026-09-14 (the user's four rulings): the Black Soulgem plug is a SHOCK plug again
-    // (zad_EffectShockOnFullArousal discharges at full arousal - DD 5.2's own zadEventVibrate does
-    // the same; the 100 lane yields to it); the STRUGGLE (Better NPC Support's escape attempts) is
-    // told as a short-lived event, its removals folded into one spoken result, the tired kneel at its
-    // end; DD's Horny event and the site-graded shock wording live in the Controller (pairs with
-    // VRTEDD_Controller.pex of the same date).
-    // 1.3.0 on 2026-09-14 — THE PROMPT STATE FILE (the user, 2026-09-13: "this is how we're going to
-    // do all our state and worn-device prompts from now on"): PromptState.cpp writes
-    // SKSE/Plugins/VRTE_DDZaZ/prompt_state.json on every change (equip, real removal, pushed name,
-    // load, the 3 s poll when the text moved); the 12 prompts read it with read_json + the random
-    // cache-bust (VRTouchEvents' recipe, VR-verified, report 45) and fall back to the 14 decorators,
-    // which stay registered. The release countdown is time-based in the DLL for the file.
-    // 1.3.1 on 2026-09-14: the WornDeviceName(actor, slotMask) native for VRTouchEvents' refused-pull
-    // line (the real name behind "The Gag"). ⚠ Ships with the matching VRTE_DDZaZ_Native.pex.
-    // 1.3.2 on 2026-09-14: THE STRUGGLE CTD - StruggleTick (and DrainPendingOff's struggle fold) read
-    // device names while holding g_mtx, and the name lookup takes g_mtx again: std::system_error
-    // "resource deadlock would occur" on the first Better NPC Support escape attempt. Plus the
-    // dispatcher now sends each Papyrus function its exact Int count: ClimaxPose (2) and
-    // RefreshBoundPose (1) had been refused by the VM on every call since 1.2.6. ⚠ Ships with the
-    // matching VRTE_DDZaZ_Equip.pex (ClimaxPose ends DD's vibration at the credited climax).
-    // 1.3.3 on 2026-09-14, from the independent review of 1.3.2 and the user's rulings: the player is
-    // never climax-credited or posed ("Nothing"); every credited climax rests the 100 lane for its
-    // cooldown (the early vibration stop let it re-fire on a stale arousal); a FULL escape now reaches
-    // its struggle END (PollStates ticks struggle-only actors); the END tells unlocked / taken off /
-    // forced apart ("Say she unlocked it" - the key route is read at the start). ⚠ Ships with the
-    // matching VRTEDD_Controller.pex (6-field END) and VRTE_DDZaZ_Equip.pex (ClimaxPose guards).
-    // 1.3.4 on 2026-09-14, the user in VR: "5 min guard? Where? Why? I never ask that?" - the 300 s
-    // full-arousal cooldown (added unasked in 1.2.6, extended in 1.3.3) is GONE; the 100 lane now fires
-    // once each time arousal reaches full and re-arms on a real reading below 99, and a credited climax
-    // disarms it (the stale pre-climax arousal can no longer fire it). The struggle payloads carry English
-    // lists ("the A, the B and the C") plus a capitalised still-on list as END field 7. ⚠ Ships with the
-    // matching VRTEDD_Controller.pex (two-sentence END).
-    // 1.3.5 on 2026-09-14, the user's VR rulings: the climax pose starts from DD's orgasm SIGNAL (the
-    // plain DeviceActorOrgasm mod event, synchronous to C++) so DD's floor clip is held off instead of
-    // jumping into the pose; climaxes 1-3 play DD's edged event, the 4th on the Belt Edged kneel through
-    // a DD SN OAR submod; the pose lasts exactly the clip DD's replacer picked (read from the behaviour
-    // graph) and no lane of ours starts anything on her until it ends. Shock: a plug ragdolls her,
-    // piercings kneel her in bleedout. Wrist-cuff equip lines say wrists + front/behind. The claim window
-    // is 3.5 s (PPB's equip check). ⚠ Ships with the matching VRTE_DDZaZ_Equip.pex, VRTE_DDZaZ_Native.pex
-    // and the OAR config (meshes/.../OpenAnimationReplacer/DD to OAR/DDSN_ClimaxKneel/config.json).
-    // 1.3.6 on 2026-09-15, from the independent review of 1.3.5 and the user's answers: tasks queued from
-    // event sinks go through TaskRelay (no AddTask inside a sink - a possible lock-order freeze); the DLL
-    // tells ClimaxPose when it added zadAnimatingFaction so every exit removes it; the signal poses only a
-    // unique name; the kneel only with arms free ("Kneel only if arms free") and the climax payload says
-    // whether it will play; belted NPCs stand on climaxes 1-3 (a second config-only OAR submod). ⚠ Ships
-    // with VRTE_DDZaZ_Equip.pex (ClimaxPose takes THREE Ints), VRTEDD_Controller.pex (climax field 3, shock
-    // wording) and both OAR configs.
-    // 1.3.7 on 2026-09-15 (the user: "make sure it's our own variable" / ZaZ and DoM "working along fine with
-    // the DD device"): the climax pose marks her with DD SN's OWN faction DDSN_ClimaxPoseFaction (DD SN
-    // Database.esp 0x801, rank 4 kneel / 1 standing) instead of the shared vanilla actor value Variable03;
-    // ZaZ/DoM arm restraints get the standing clip on every climax (DD NG's belt kneel knew only DD devices).
-    // ⚠ Ships with DD SN Database.esp 1.3.7 (the faction), VRTE_DDZaZ_Equip.pex and both OAR configs.
-    // 1.3.8 on 2026-09-15, after the first VR session of 1.3.7 (climax pose, signal, relief and the plug-shock
-    // ragdoll all seen working): at full arousal the device goes off AGAIN when DD's vibration ran out with no
-    // climax and no edge ("Device goes off again"); the blind trip rolls on the game's own walking/running
-    // flags instead of a 150-unit travel floor that a slowed or idling NPC never crossed, with a receipt when
-    // the watch opens. ⚠ Ships with VRTE_DDZaZ_Equip.pex + VRTE_DDZaZ_Native.pex (NoteVibrateResult).
-    // 1.3.9 on 2026-09-15, after the second VR session: a gag or hood going on the NPC who is TALKING cuts her line
-    // (SkyrimNet speech/audio signals tracked per speaker); a climax, a trip and a shock are said OUT LOUD by her
-    // (DirectNarration) and cut her own line first if she is talking; while the device keeps going off again at
-    // full arousal only the first start and the last stop are told. ⚠ Ships with VRTE_DDZaZ_Equip.pex (CutSpeech),
-    // VRTE_DDZaZ_Native.pex (IsTalking) and VRTEDD_Controller.pex.
-    // 1.3.10 on 2026-09-15, from the independent review of 1.3.9: a reply whose voice is slow to start (13 % take
-    // 5 s or more after the text is written) still counts as her talking, so a gag in that gap cuts her; and her
-    // last device coming off clears a held vibration stop instead of telling it on her next equip. The AddOn's
-    // plug lines (VRTEDD_Narrate) now cut only the NPC who is talking - they call IsTalking (a 1.3.9 native), so
-    // that AddOn needs a Database of 1.3.9 or later.
-    // 1.3.11 on 2026-09-15, from the user's VR session: a removal now rewrites the prompt state file AT THE UNEQUIP
-    // instead of at the drain up to 4.5 s later - a hand pull is narrated by VRTouchEvents the moment our gate says
-    // 'done', and her reply was rendering a block that still listed the device (measured 2.97 s / 4.06 s late).
-    // The re-assert branch mirrors it. Prompt `0770_vrtedd_worn` is renumbered **0490** so the worn block renders
-    // BEFORE SkyrimNet's own `0500_response_format` ("so as to not over ride the way a LLM is supposed to respond").
-    // ★ 1.0.0 = THE FIRST PUBLIC RELEASE, as "SkyrimNet Devious Awareness Base" (2026-09-15). The 1.2.x/1.3.x
-    // numbering below and in the ReadMe's changelog is this mod's development history under its old name.
-    .Version              = { 1, 0, 0 },
-    .Name                 = "VRTE_DDZaZ",
-    .Author               = "mad72",
-    .StructCompatibility  = SKSE::StructCompatibility::Independent,
-    .RuntimeCompatibility = SKSE::VersionIndependence::AddressLibrary
-)
+// ⛔ BUMPED 2026-09-03. This said {1,0,0} while the package shipped as
+// V1.1-beta, and the DLL carries NO VS_FIXEDFILEINFO - so the banner below
+// is the ONLY version a user or the author can see. Every beta report cited
+// the wrong build, and "is the new DLL actually loaded?" was unanswerable
+// on a mod whose entire purpose is collecting SE/AE logs.
+// 1.2.0 on 2026-09-10: the beta with the removal gate, key capture and the
+// gag/blindfold enforcement. The banner says "Database" because this DLL
+// ships in DD SN Database - the AddOn is a separate mod with no DLL.
+// 1.2.2 on 2026-09-10: device narration moved to the AddOn, the after-state became a
+// 3-prompt block, and the gate is handed to PPB only with the AddOn loaded.
+// 1.2.1 on 2026-09-10: the key-test fixes - the undress hold, keyed approvals for the
+// AddOn key rule, the slot gate, mannequins excluded, refusals logged.
+// 1.2.3 on 2026-09-13: the observer view, boot grades, hood layers + the Extreme Hood pair,
+// pony gag + Shibari, DoM restraints; masturbation relay gone (VRTouchEvents'); the three
+// dead gesture renames dropped; the hand-equip device detail (DeviceFitted) and hand-moved
+// unclassed plugs left to VRTouchEvents. ⚠ Pairs with VRTouchEvents built 2026-09-13 or later.
+// 1.2.4 on 2026-09-13: the integration review's fix list - climaxes credited only while a
+// device runs (D1), nothing done to an unconscious NPC (D3), the scene gate on every effect
+// and device line + a 15 s post-scene grace (D2/D5), names filed by rendered FormID + the
+// pair map so the EQUIP gate finally reads a name (D4/D9/D10), quest flags on the inventory
+// half (D7), the cast-vibration stop edge quiet (D12), residuals cleared on revert (D6), the
+// pacing event on the hand-plug route (D16), leash collars refused (F2), shock edge with its
+// sites (D14). ⚠ Ships with the matching VRTE_DDZaZ_Native.pex (NoteDeviceRecord).
+// 1.2.5 on 2026-09-13 (the first VR session on 1.2.4): DD's off->on re-asserts no longer
+// narrate as real removals/equips (deferred removals, echo for every class, already-worn =
+// no change); the shock-marker effect no longer reads as a jolt; the equip gate reads names
+// from the shipped pair table (VRTE_DDZaZ_Pairs.ini); a woken KO gets her bound-arm pose back.
+// 1.2.6 on 2026-09-13: the climax POSE (DD's standing clip over its floor clip for climaxes
+// 1-3, the edged/kneel clip from the 4th, arousal to 50 after), the 100 lane (a vibrating device
+// at full arousal goes off by itself), and the capitalised-pronoun strings gone from the
+// Controller's lines (Papyrus's case-insensitive string cache handed back "she").
+// 1.2.7 on 2026-09-14 (VRTouchEvents' request "PlugRefitEcho" part A): the WHOLE removal is held,
+// not just its line - DD's off->on re-fit no longer restarts a device's wear clock, writes a false
+// after-state, or erases her climax count / 100-lane cooldown; the churn echo is retired (it could
+// only swallow a real removal now); held removals are cleared at a load and never saved.
+// 1.2.8 on 2026-09-14 (the user: "cell load and gears equipping don't affect our state and
+// effect"): a device off her body but still in her inventory (a DD strip, outfit re-apply,
+// cell-load re-fit) or off during a scene is HELD, not removed; her last device coming off keeps
+// her climax count, cooldowns and arousal reading; the TIRED KNEEL (bleedout 3 s) when an arm
+// binder / yoke / leg restraint / rope bind at phase 4+ comes off. ⚠ Pairs with the matching
+// VRTE_DDZaZ_Equip.pex (TiredKneel).
+// 1.2.9 on 2026-09-14 (the user's four rulings): the Black Soulgem plug is a SHOCK plug again
+// (zad_EffectShockOnFullArousal discharges at full arousal - DD 5.2's own zadEventVibrate does
+// the same; the 100 lane yields to it); the STRUGGLE (Better NPC Support's escape attempts) is
+// told as a short-lived event, its removals folded into one spoken result, the tired kneel at its
+// end; DD's Horny event and the site-graded shock wording live in the Controller (pairs with
+// VRTEDD_Controller.pex of the same date).
+// 1.3.0 on 2026-09-14 — THE PROMPT STATE FILE (the user, 2026-09-13: "this is how we're going to
+// do all our state and worn-device prompts from now on"): PromptState.cpp writes
+// SKSE/Plugins/VRTE_DDZaZ/prompt_state.json on every change (equip, real removal, pushed name,
+// load, the 3 s poll when the text moved); the 12 prompts read it with read_json + the random
+// cache-bust (VRTouchEvents' recipe, VR-verified, report 45) and fall back to the 14 decorators,
+// which stay registered. The release countdown is time-based in the DLL for the file.
+// 1.3.1 on 2026-09-14: the WornDeviceName(actor, slotMask) native for VRTouchEvents' refused-pull
+// line (the real name behind "The Gag"). ⚠ Ships with the matching VRTE_DDZaZ_Native.pex.
+// 1.3.2 on 2026-09-14: THE STRUGGLE CTD - StruggleTick (and DrainPendingOff's struggle fold) read
+// device names while holding g_mtx, and the name lookup takes g_mtx again: std::system_error
+// "resource deadlock would occur" on the first Better NPC Support escape attempt. Plus the
+// dispatcher now sends each Papyrus function its exact Int count: ClimaxPose (2) and
+// RefreshBoundPose (1) had been refused by the VM on every call since 1.2.6. ⚠ Ships with the
+// matching VRTE_DDZaZ_Equip.pex (ClimaxPose ends DD's vibration at the credited climax).
+// 1.3.3 on 2026-09-14, from the independent review of 1.3.2 and the user's rulings: the player is
+// never climax-credited or posed ("Nothing"); every credited climax rests the 100 lane for its
+// cooldown (the early vibration stop let it re-fire on a stale arousal); a FULL escape now reaches
+// its struggle END (PollStates ticks struggle-only actors); the END tells unlocked / taken off /
+// forced apart ("Say she unlocked it" - the key route is read at the start). ⚠ Ships with the
+// matching VRTEDD_Controller.pex (6-field END) and VRTE_DDZaZ_Equip.pex (ClimaxPose guards).
+// 1.3.4 on 2026-09-14, the user in VR: "5 min guard? Where? Why? I never ask that?" - the 300 s
+// full-arousal cooldown (added unasked in 1.2.6, extended in 1.3.3) is GONE; the 100 lane now fires
+// once each time arousal reaches full and re-arms on a real reading below 99, and a credited climax
+// disarms it (the stale pre-climax arousal can no longer fire it). The struggle payloads carry English
+// lists ("the A, the B and the C") plus a capitalised still-on list as END field 7. ⚠ Ships with the
+// matching VRTEDD_Controller.pex (two-sentence END).
+// 1.3.5 on 2026-09-14, the user's VR rulings: the climax pose starts from DD's orgasm SIGNAL (the
+// plain DeviceActorOrgasm mod event, synchronous to C++) so DD's floor clip is held off instead of
+// jumping into the pose; climaxes 1-3 play DD's edged event, the 4th on the Belt Edged kneel through
+// a DD SN OAR submod; the pose lasts exactly the clip DD's replacer picked (read from the behaviour
+// graph) and no lane of ours starts anything on her until it ends. Shock: a plug ragdolls her,
+// piercings kneel her in bleedout. Wrist-cuff equip lines say wrists + front/behind. The claim window
+// is 3.5 s (PPB's equip check). ⚠ Ships with the matching VRTE_DDZaZ_Equip.pex, VRTE_DDZaZ_Native.pex
+// and the OAR config (meshes/.../OpenAnimationReplacer/DD to OAR/DDSN_ClimaxKneel/config.json).
+// 1.3.6 on 2026-09-15, from the independent review of 1.3.5 and the user's answers: tasks queued from
+// event sinks go through TaskRelay (no AddTask inside a sink - a possible lock-order freeze); the DLL
+// tells ClimaxPose when it added zadAnimatingFaction so every exit removes it; the signal poses only a
+// unique name; the kneel only with arms free ("Kneel only if arms free") and the climax payload says
+// whether it will play; belted NPCs stand on climaxes 1-3 (a second config-only OAR submod). ⚠ Ships
+// with VRTE_DDZaZ_Equip.pex (ClimaxPose takes THREE Ints), VRTEDD_Controller.pex (climax field 3, shock
+// wording) and both OAR configs.
+// 1.3.7 on 2026-09-15 (the user: "make sure it's our own variable" / ZaZ and DoM "working along fine with
+// the DD device"): the climax pose marks her with DD SN's OWN faction DDSN_ClimaxPoseFaction (DD SN
+// Database.esp 0x801, rank 4 kneel / 1 standing) instead of the shared vanilla actor value Variable03;
+// ZaZ/DoM arm restraints get the standing clip on every climax (DD NG's belt kneel knew only DD devices).
+// ⚠ Ships with DD SN Database.esp 1.3.7 (the faction), VRTE_DDZaZ_Equip.pex and both OAR configs.
+// 1.3.8 on 2026-09-15, after the first VR session of 1.3.7 (climax pose, signal, relief and the plug-shock
+// ragdoll all seen working): at full arousal the device goes off AGAIN when DD's vibration ran out with no
+// climax and no edge ("Device goes off again"); the blind trip rolls on the game's own walking/running
+// flags instead of a 150-unit travel floor that a slowed or idling NPC never crossed, with a receipt when
+// the watch opens. ⚠ Ships with VRTE_DDZaZ_Equip.pex + VRTE_DDZaZ_Native.pex (NoteVibrateResult).
+// 1.3.9 on 2026-09-15, after the second VR session: a gag or hood going on the NPC who is TALKING cuts her line
+// (SkyrimNet speech/audio signals tracked per speaker); a climax, a trip and a shock are said OUT LOUD by her
+// (DirectNarration) and cut her own line first if she is talking; while the device keeps going off again at
+// full arousal only the first start and the last stop are told. ⚠ Ships with VRTE_DDZaZ_Equip.pex (CutSpeech),
+// VRTE_DDZaZ_Native.pex (IsTalking) and VRTEDD_Controller.pex.
+// 1.3.10 on 2026-09-15, from the independent review of 1.3.9: a reply whose voice is slow to start (13 % take
+// 5 s or more after the text is written) still counts as her talking, so a gag in that gap cuts her; and her
+// last device coming off clears a held vibration stop instead of telling it on her next equip. The AddOn's
+// plug lines (VRTEDD_Narrate) now cut only the NPC who is talking - they call IsTalking (a 1.3.9 native), so
+// that AddOn needs a Database of 1.3.9 or later.
+// 1.3.11 on 2026-09-15, from the user's VR session: a removal now rewrites the prompt state file AT THE UNEQUIP
+// instead of at the drain up to 4.5 s later - a hand pull is narrated by VRTouchEvents the moment our gate says
+// 'done', and her reply was rendering a block that still listed the device (measured 2.97 s / 4.06 s late).
+// The re-assert branch mirrors it. Prompt `0770_vrtedd_worn` is renumbered **0490** so the worn block renders
+// BEFORE SkyrimNet's own `0500_response_format` ("so as to not over ride the way a LLM is supposed to respond").
+// ★ 1.0.0 = THE FIRST PUBLIC RELEASE, as "SkyrimNet Devious Awareness Base" (2026-09-15). The 1.2.x/1.3.x
+// numbering below and in the ReadMe's changelog is this mod's development history under its old name.
+
 
 static void InitLogging()
 {
@@ -633,12 +627,16 @@ static bool RegisterPapyrus(RE::BSScript::IVirtualMachine* vm)
 SKSEPluginLoad(const SKSE::LoadInterface* skse)
 {
     InitLogging();
-    SKSE::Init(skse);
 
+    const auto plugin{ SKSE::PluginDeclaration::GetSingleton() };
+    const auto version{ plugin->GetVersion() };
     logger::info("==================================================");
-    logger::info("SkyrimNet Devious Awareness Base v1.0.0 loaded.");
+    logger::info("SkyrimNet Devious Awareness Base {} loaded.", version);
+    logger::info(" Running on Skyrim v{}", REL::Module::get().version().string());
     logger::info("Standalone plugin — does not modify VRTouchEvents or PPB.");
     logger::info("==================================================");
+
+    SKSE::Init(skse, false);
 
     if (auto* papyrus = SKSE::GetPapyrusInterface()) papyrus->Register(RegisterPapyrus);
     if (auto* msg = SKSE::GetMessagingInterface()) {
