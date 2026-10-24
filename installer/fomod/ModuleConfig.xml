@@ -1,19 +1,14 @@
-<?xml version='1.0' encoding='utf-8'?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
-
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/Cutleast/FOMOD-Creation-Kit/master/res/schemas/ModConfig5.0.xsd">
     <moduleName>SkyrimNet Devious Awareness Base 1.0</moduleName>
-
     <requiredInstallFiles>
         <folder source="Base" destination="" />
     </requiredInstallFiles>
-
     <installSteps order="Explicit">
         <installStep name="Awareness">
             <optionalFileGroups order="Explicit">
-
                 <group name="Sensory state (requires SkyrimNet)" type="SelectAny">
                     <plugins order="Explicit">
-
                         <plugin name="Gag awareness">
                             <description>Tells SkyrimNet that a gagged NPC cannot speak.
 
@@ -28,13 +23,13 @@ AND WHEN IT COMES OFF: for her next three replies she is told, in her own prompt
 THE SPELL LOCK LIVES IN THE BASE INSTALL. A gagged NPC cannot cast spells whether or not this option is ticked; this option is only what the AI is told.
 
 Installs 0795_vrtedd_gag.prompt and 0791_vrtedd_ungagged.prompt.</description>
-                            <image path="" />
                             <files>
                                 <folder source="Gag Awareness" destination="" />
                             </files>
-                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                            <typeDescriptor>
+                                <type name="Recommended" />
+                            </typeDescriptor>
                         </plugin>
-
                         <plugin name="Blindness awareness">
                             <description>Tells SkyrimNet that a blindfolded or hooded NPC cannot see.
 
@@ -45,13 +40,13 @@ AND WHEN IT COMES OFF: three replies telling her sight is back, for the same rea
 THE WEAPON LOCK LIVES IN THE BASE INSTALL. A blindfolded NPC loses bows, crossbows, staves and aimed spells, stumbles, and swings at the wrong target whether or not this option is ticked; this option is only what the AI is told.
 
 Installs 0785_vrtedd_blind.prompt and 0792_vrtedd_unblinded.prompt.</description>
-                            <image path="" />
                             <files>
                                 <folder source="Blindness Awareness" destination="" />
                             </files>
-                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                            <typeDescriptor>
+                                <type name="Recommended" />
+                            </typeDescriptor>
                         </plugin>
-
                         <plugin name="Deafness awareness">
                             <description>Tells SkyrimNet that a hooded NPC's hearing is dulled.
 
@@ -62,13 +57,13 @@ It is honest about the threshold, too: her own name said loudly or close, a shou
 FIXED IN 1.2: a plain blindfold no longer counts. Some DD blindfolds carry the same keyword as a hood; the mod now also checks the mesh, so a blindfold blinds and leaves the ears open.
 
 Installs 0786_vrtedd_deaf.prompt and 0793_vrtedd_undeafened.prompt.</description>
-                            <image path="" />
                             <files>
                                 <folder source="Deafness Awareness" destination="" />
                             </files>
-                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                            <typeDescriptor>
+                                <type name="Recommended" />
+                            </typeDescriptor>
                         </plugin>
-
                         <plugin name="Restraint awareness">
                             <description>Tells SkyrimNet that a bound NPC cannot use her hands, or cannot walk properly.
 
@@ -77,19 +72,17 @@ Arms bound behind her back, wrists cuffed in front, a yoke, a straitjacket, mitt
 AND WHEN IT COMES OFF: three replies telling her she can move freely again.
 
 Installs 0780_vrtedd_restraint.prompt and 0794_vrtedd_unbound.prompt.</description>
-                            <image path="" />
                             <files>
                                 <folder source="Restraint Awareness" destination="" />
                             </files>
-                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                            <typeDescriptor>
+                                <type name="Recommended" />
+                            </typeDescriptor>
                         </plugin>
-
                     </plugins>
                 </group>
-
                 <group name="What other people can see" type="SelectAny">
                     <plugins order="Explicit">
-
                         <plugin name="Observer view (recommended)">
                             <description>Describes an NPC's gear to the person she is TALKING TO, filtered by what is actually visible.
 
@@ -102,13 +95,13 @@ One deliberate exception: a pony-tail plug is internal, but the tail hangs in pl
 Purely additive - it adds a block, it changes nothing that already renders.
 
 Installs 0950_vrtedd_visible_devices.prompt.</description>
-                            <image path="" />
                             <files>
                                 <folder source="Observer View" destination="" />
                             </files>
-                            <typeDescriptor><type name="Recommended" /></typeDescriptor>
+                            <typeDescriptor>
+                                <type name="Recommended" />
+                            </typeDescriptor>
                         </plugin>
-
                         <plugin name="Equipment-list filter (BETA - replaces a SkyrimNet file)">
                             <description>Stops SkyrimNet's own equipment list from naming restraints, so the Observer View above is the only thing that describes them.
 
@@ -119,18 +112,16 @@ WHY YOU MIGHT WANT IT. SkyrimNet lists every worn item to whoever an NPC is talk
 OFF by default on purpose. Everything else in this installer only adds files.
 
 Installs 0410_equipment.prompt.</description>
-                            <image path="" />
                             <files>
                                 <folder source="Equipment List Filter" destination="" />
                             </files>
-                            <typeDescriptor><type name="Optional" /></typeDescriptor>
+                            <typeDescriptor>
+                                <type name="Optional" />
+                            </typeDescriptor>
                         </plugin>
-
                     </plugins>
                 </group>
-
             </optionalFileGroups>
         </installStep>
     </installSteps>
-
 </config>
